@@ -21,6 +21,6 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 	http.HandleFunc("/favicon.ico", http.NotFound)
-	http.HandleFunc("/", handleHi)
+	http.HandleFunc("/hi", handleHi)
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
