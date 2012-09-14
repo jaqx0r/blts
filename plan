@@ -1,0 +1,8 @@
+simple web server recording metrics to X.  simulates reading from remote
+server; has a bottleneck
+
+X => collectd, graphite
+
+antagonist -> ab?  another go program? drive latency up with more requests
+
+load balancer to serve in front of http server to demonstrate agg
