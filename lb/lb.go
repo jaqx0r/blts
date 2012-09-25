@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "expvar"
+	"expvar"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -16,19 +16,33 @@ var (
 	backends = flag.String("backends", "", "List of backend addesses, separated by commas, to loadbalance.")
 )
 
+var (
+	requests = expvar.NewInt("requests")
+	errors   = expvar.NewInt("errors")
+)
+
 func handleGet(w http.ResponseWriter, r *http.Request) {
+	requests.Add(1)
 	bs := strings.Split(*backends, ",")
-	url := fmt.Sprintf("http://%s/%s", bs[rand.Intn(len(bs))], r.URL.Path)
+	url := fmt.Sprintf("http://%s%s",
+		bs[rand.Intn(len(bs))], r.URL.Path)
 	resp, err := http.Get(url)
 	if err != nil {
+		errors.Add(1)
 		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	h := w.Header()
-	for k, v := range resp.Header {
-		h[k] = v
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		h := w.Header()
+		for k, v := range resp.Header {
+			h[k] = v
+		}
+	} else {
+		errors.Add(1)
 	}
 	w.WriteHeader(resp.StatusCode)
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	w.Write(body)
 }

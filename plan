@@ -6,3 +6,13 @@ X => collectd, graphite
 antagonist -> ab?  another go program? drive latency up with more requests
 
 load balancer to serve in front of http server to demonstrate agg
+
+
+rate
+agg
+ratio
+
+nagios (collect/check/alert) ==> timeseries (collect) + analysis (check at
+scale/alert)
+
+
