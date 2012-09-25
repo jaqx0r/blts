@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 export GOMAXPROCS=4
 
 BACKENDS=""

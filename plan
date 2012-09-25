@@ -16,3 +16,7 @@ nagios (collect/check/alert) ==> timeseries (collect) + analysis (check at
 scale/alert)
 
 
+
+zoo.window
+diff
+

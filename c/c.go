@@ -31,10 +31,58 @@ func write(lines chan string) {
 	for {
 		select {
 		case line := <-lines:
-			// fmt.Print(line)
 			_, err := fmt.Fprint(collectd, line)
 			if err != nil {
 				ioutil.ReadAll(collectd)
+			}
+		}
+	}
+}
+
+func fetch(t string, lines chan string) {
+	resp, err := http.Get(fmt.Sprintf("http://%s/debug/vars", t))
+	if err != nil {
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+
+	d := json.NewDecoder(resp.Body)
+	var j map[string]interface{}
+	err = d.Decode(&j)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for k, v := range j {
+		switch k {
+		case "latency", "requests", "errors":
+		// Carry on.
+		default:
+			continue
+		}
+		switch n := v.(type) {
+		case float64:
+			s := fmt.Sprintf(COLLECTD_FORMAT,
+				t,
+				"counter",
+				k,
+				INTERVAL,
+				time.Now().Unix(),
+				int64(n))
+			lines <- s
+		case map[string]interface{}:
+			for k1, v1 := range n {
+				switch n1 := v1.(type) {
+				case float64:
+					s := fmt.Sprintf(COLLECTD_FORMAT,
+						t,
+						"counter",
+						fmt.Sprintf("%s_%s", k, k1),
+						INTERVAL,
+						time.Now().Unix(),
+						int64(n1))
+					lines <- s
+				}
 			}
 		}
 	}
@@ -53,27 +101,7 @@ func main() {
 		select {
 		case <-time.After(INTERVAL * time.Second):
 			for _, t := range ts {
-				resp, err := http.Get(fmt.Sprintf("http://%s/debug/vars", t))
-				if err != nil {
-					log.Println(err)
-				}
-				d := json.NewDecoder(resp.Body)
-				var j map[string]interface{}
-				err := d.Decode(&j)
-				for k, v := range j {
-					switch v.(type) {
-					case float64, int64:
-						s := fmt.Sprintf(COLLECTD_FORMAT,
-							t,
-							"counter",
-							k,
-							INTERVAL,
-							time.Now().Unix(),
-							v)
-						lines <- s
-case int
-					}
-				}
+				go fetch(t, lines)
 			}
 		}
 	}

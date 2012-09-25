@@ -21,12 +21,16 @@ var (
 	errors   = expvar.NewInt("errors")
 )
 
+var (
+	client *http.Client
+)
+
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	requests.Add(1)
 	bs := strings.Split(*backends, ",")
 	url := fmt.Sprintf("http://%s%s",
 		bs[rand.Intn(len(bs))], r.URL.Path)
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		errors.Add(1)
 		log.Println(err)
@@ -48,6 +52,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	client = &http.Client{}
 	flag.Parse()
 	http.HandleFunc("/", handleGet)
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
