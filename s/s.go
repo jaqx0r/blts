@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"expvar"
 	"flag"
 	"fmt"
@@ -13,14 +12,15 @@ import (
 )
 
 var (
-	port = flag.String("port", "8080", "Port to listen on.")
+	port = flag.String("port", "8000", "Port to listen on.")
 )
 
 var (
 	requests = expvar.NewInt("requests")
 	errors   = expvar.NewInt("errors")
-	// Buckets of lower bound latency in log2 buckets.
-	latency = expvar.NewMap("latency")
+	// Buckets of log2 lower bound latency.
+	latency    = expvar.NewMap("latency")
+	latency_ms = expvar.NewMap("latency_ms")
 )
 
 var (
@@ -30,19 +30,20 @@ var (
 func handleHi(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	requests.Add(1)
-	// Perform a database lookup.
+	// Perform a "database" "lookup".
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
-	if rand.Intn(100) > 99 {
+	// Fail sometimes
+	if rand.Intn(100) > 95 {
 		w.WriteHeader(500)
 		return
 	}
 	defer func() {
 		l := time.Since(start)
-		latency.Add(fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6)))), 1)
+		bucket := fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6))))
+		latency.Add(bucket, 1)
+		latency_ms.Add(bucket, l.Nanoseconds()/1e6)
 	}()
-	b := bufio.NewWriter(w)
-	defer b.Flush()
-	b.WriteString("hi")
+	w.Write([]byte("hi\n"))
 }
 
 func main() {

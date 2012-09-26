@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -35,7 +36,6 @@ func write(records chan record) {
 		case r := <-records:
 			filename := fmt.Sprintf(FILENAME_FORMAT, r.target, r.name)
 			if c, ok := cs[filename]; ok {
-				fmt.Printf("writing values to %s\n", filename)
 				c.Write(r.values)
 				c.Flush()
 			} else {
@@ -46,7 +46,6 @@ func write(records chan record) {
 					log.Println("Couldn't open %q, %s", filename, err)
 					break
 				}
-				fmt.Printf("opened %s\n", filename)
 				cs[filename] = csv.NewWriter(f)
 				cs[filename].Write(r.values)
 				cs[filename].Flush()
@@ -73,13 +72,13 @@ func fetch(t string, lines chan record) {
 	now := fmt.Sprintf("%d", time.Now().Unix())
 	for k, v := range j {
 		switch k {
-		case "latency":
+		case "latency", "latency_ms":
 			vals := v.(map[string]interface{})
 			r := []string{now}
 			// Pad out the map with missing values
-			buckets := []int64{0, 1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512}
-			for _, b := range buckets {
-				if v1, ok := vals[fmt.Sprintf("%d", b)]; ok {
+			for _, b := range []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10} {
+				l := int64(math.Exp2(b))
+				if v1, ok := vals[fmt.Sprintf("%d", l)]; ok {
 					r = append(r, fmt.Sprintf("%v", v1))
 				} else {
 					r = append(r, "0")

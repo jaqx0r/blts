@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	port     = flag.String("port", "8080", "Port to listen on.")
+	port     = flag.String("port", "9001", "Port to listen on.")
 	backends = flag.String("backends", "", "List of backend addesses, separated by commas, to loadbalance.")
 )
 
@@ -37,7 +37,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Get(url)
 	if err != nil {
 		errors.Add(1)
-		log.Println(err)
+		log.Println("get:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
