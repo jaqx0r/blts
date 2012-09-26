@@ -15,14 +15,6 @@ Site Reliability Engineer, Google
 \end{slide}
 
 
-
-
-I don't remember the first time I saw "{\#}monitoringsucks" on Twitter, but it's
-been a growing theme since then with several devops luminaries all chiming in
-with their 70 characters/cent.
-
-I can appreciate the sentiment.  I once used Nagios and tried to scale it.
-however I can't agree that monitoring sucks.   Monitoring is awesome!
 {\#}monitoringsucks
 It sure used to.
 
@@ -36,66 +28,26 @@ What to talk about?
 
 I have no idea what has gone on in the real world since then.
 
-These {\#}monitoringsucks people seem to be on the right path... do I have anything new to add?
-Validation
-http://blog.lusis.org/blog/2012/06/05/monitoring-sucking-just-a-little-bit-less/
+These {\#}monitoringsucks people seem to be on the right path... do I have
+anything new to add?
+
+\begin{slide}
+\heading{Validation}
+\texttt{http://blog.lusis.org/blog/2012/06/05/monitoring-sucking-just-a-little-bit-less/}
 
 "Instead of alerting on data and then storing it as an afterthought (perfdata anyone?) let’s start collecting the
 data, storing it and then alerting based on it."
 
 
 I am glad to have read this!
-Why do we monitor?
-To know if it's working
+\end{slide}
 
-To know how well it's working
+--
 
-To be forewarned
+I want to take this a step furth
 
-To understand change
+The design of nagios has been around for years
 
-To plan for the future
-
-We observe our systems to understand their behaviour.  Observation can be done
-in many ad hoc ways, such as reading logs, or taking measurements.
-
-We can use measurements of our systems to comparing against others (either other measures, or to the same measure over time.)
-
-The process or result of determining or estimating ratios of quantities to
-units.  To take a measurement, we need a base unit, a quantity, and some
-repeatable measurement process to convert that quantity into a measure.
-
-An important piece of the scientific method is to run an experiment to test a
-hypothesis, and an experimental procedure must describe how one will measure
-that change.
-
-Let's also not forget that change introduces the unknown; the unknown by its
-very nature can lead to nonworkingness.  Observation makes the unknown known,
-and measurement turns the known into the understood.
-
-
-Why do we monitor?
-So the boss and the users aren't the first to tell you the site is down...
-What is monitoring?
-Measuring,
-Recording,
-Alerting,
-Visualising
-
-"If you can't measure it, you can't manage it."
- %% As W. Edwards Deming says with regard to quality, "if you can't measure it, you can't manage it ..."If you can't measure it, you can't manage it!", is  famous quote of Robert Kaplan, the founder of the BSCas Floyd said, if you can’t measure it, you can’t manage it ... Remember Gordon Baskerville's famous forest management dictum: "If you can't measure it, you can't manage it ...a quote from George Webster that says "If you can't measure it, you can't manage it ...Grove is known for an almost ruthless analytic zeal (at Intel, one of his best-known maxims is "If you can't measure it, you can't manage it"),The cardinal rule of telecommunications: If you can't measure it, you can't manage it." T. TRAVERS WALTRIP ... as Peter Drucker is noted for saying, ‘if you can’t measure it, you can’t manage it ...... If you can't measure it, you can't manage it," Sugrue says... The famous quote attributed to Frederick W. Smith, the founder of Federal Express-"if you can't measure it, you can't manage it"AND PROBABLY THE MOST RELIABLE CITATION OF ALL...... If you can’t measure it, you can’t manage it.” The author of this quote is unknown, but it is quoted all the time.
-Just some tangential lols.
-Are you measuring?
-Are you really, actually measuring?
-
-What are you measuring?
-
-How are you measuring?
-
-
-Before you can fix your monitoring, you need to know if the data you're collecting is the right data.
-
-Are you asking the right questions?
 Monitoring systems
 automate the boring parts:
 Measuring,
@@ -160,6 +112,11 @@ http://blog.lusis.org/blog/2012/06/05/monitoring-sucking-just-a-little-bit-less/
 
 "Instead of alerting on data and then storing it as an afterthought (perfdata anyone?) let’s start collecting the
 data, storing it and then alerting based on it."
+
+--
+
+blackbox vs whitebox
+
 
 
 How do we monitor?
@@ -240,18 +197,133 @@ Fire an alert.
 
 ... ~same as probing
 I assert that this is gives you the same information as the blackbox probe -- you don't get the internal state as a result, only the truthiness of the test.
+
+--
+
+I don't remember the first time I saw "{\#}monitoringsucks" on Twitter, but it's
+been a growing theme since then with several devops luminaries all chiming in
+with their 70 characters/cent.
+
+I can appreciate the sentiment.  I once used Nagios and tried to scale it.
+
+I set up cfengine to configure all the checks on all the hosts, and then wrote
+a templating language for cfengine to make it scale.
+
+however I can't agree that monitoring sucks.   Monitoring is awesome!
+
+I just think the tools you're using suck!
+
+
+[nagios model]
+
+This is a model of the nagios check/alert paradigm.  Each instance of a check
+script is responsible for deciding if there is an alerting condition.  Each
+script, or each invocation of the script, needs to pass around the thresholds
+to make those alerting decisions.
+
+[tsdb model]
+
+Nowadays, I'm glad to see it, there's a lot of time series databases deployed.
+graphite, opentsdb, collectd, statsd, there's a growing number of choices.
+This is good.
+
+Nagios' timeseries afterthought, perfdata, gets written into the timeseries
+database, and then we generate pretty charts.  Is that all that a timeseries
+database is good for though?  Do we only want to use it as a tool for humans,
+a systems rear view mirror?
+
+[tsdb and app stats]
+
+I should take a small moment to acknowledge the advent of application metrics
+going into timeseries databases.  Some people call this real user monitoring.
+I call it merely whitebox monitoring, the opposite of the blackbox check; in
+the latter case you only know the interface, and that's how you test that it's
+working, in the former you get to see inside the box and look at the state of
+the application.
+
+[+check-graphite]
+
+and once you have the application state in a timeseries database, you decide
+you don't want run check\_http on your application backends, and point it right
+back at the timeseries database.
+
+The problem I see is that you still have to run a check script for every metric
+you want to test against.  So you have a web scale application and thousands of
+timeseries, and a check script for each.  Or perhaps you are smart and can run
+one check script across a class of timeseries.
+
+Well, I think the idea of the check script is still bogus.
+
+I claim that this doesn't scale well for maintenance costs and monitoring
+resource costs.  Even if you have written tools to autogenerate your nagios
+configuration.  The cost of adding a new metric to an existing check script, or
+adding a new invocation of a check script for a different class of timeseries,
+or adding a new host, or regenerating new monitoring for existing hosts, all
+carries a non trivial amount of work, and along with that a non trivial amount
+of risk.
+
+Let's also not forget that every check script incurs a physical cost on the
+monitoring infrastructure.  Christian from Anchor will be talking later this
+conference about scaling Nagios; I suppose we will have to fight later.
+
+
+[new design]
+
+So how do you make this scale?
+
+Nagios does two things; collect metrics, and test them against a set of rules.
+The rules map 1:1 to the metrics, embodied in the instance of a script.
+
+So, we can start by separating the collection from the rules.  We still need to
+collect metrics from every target; but we don't have to run N scripts to
+collect N metrics; we can collect N metrics in a single scrape of a target.
+
+We don't need 1 instance of a rule for every metric; we can reuse the same rule
+across many metrics.  If you treat the metrics as a vector, you can apply
+vector maths to it.  Get me all the hosts that have a load higher than 10 the
+last time I scraped, it's just filtering a vector.
+
+
+Back to reality; we can do this currently by abusing nagios' perfdata to write
+large gloms of data into a timeseries database; or not use nagios at all and
+write straight to the tsdb; and then write check scripts that know how to apply
+a rule to a class of timeseries.
+
+I think I mentioned that mode already, though.
+
+So let's go on a tangent now and think about the kinds of things you can do
+when you ignore nagios and the check script, and think solely about alerting
+based on the timeseries themselves.
+
+
+
+
+
 Alerting on thresholds
+
 Some real world examples; this one is a good match for the simple check/alert model.
 
 %% https://www.youtube.com/watch?v=kn_dYZn5TEQ&feature=player_embedded
 
 Alert when beer supply low
+
+\begin{verbatim}
+if cases - 1 - 1 <= 1:
+  alert Barney Worried About Beer Supply
+\end{verbatim}
+
+$cases - 1 - 1 {\lbrace  if <= 1 Barney Worried About Beer Supply
+ otherwise Barney OK}$
+
+
 if cases - 1 - 1 <= 1
    Barney Worried About Beer Supply
+
 time
 cases
 3
 Barney gets worried
+
 Disk full alert
 Alert when 90% full
 Different filesystems have different sizes
@@ -282,21 +354,31 @@ More complex real world example.
 
 
 Dennis Hopper's alert
-if speed > 50mph any time in the past
-	Bomb Armed
-if Bomb Armed and speed < 50mph ...
+\begin{verbatim}
+foreach speed any time in the past:
+  if speed > 50mph:
+	alert Bomb Armed
+
+if Bomb Armed and speed < 50mph:
+  ...
+\end{verbatim}
+
 time
 speed
 50
 armed
 explodes
-Keanu's alert
-if speed > 50mph
-Save the bus
+\begin{slide}
+\heading{Keanu's alert}
+\begin{verbatim}
+if speed > 50mph:
+  alert Save the bus!
+\end{verbatim}
+First he wants to know what bus it is.
+\end{slide}
 time
 speed
 Save the bus!
-First he wants to know what bus it is.
 Keanu's alert
 time
 acceleration
@@ -309,22 +391,35 @@ danger zone
 it doesn't matter how long it takes to save thew bus as long as the bus stays above 50mph.  At what point does the rescue operation become time critical?
 
 When the bus starts slowing down, acceleration goes negative.
-Keanu's alert
-speed - acceleration * time = 50
-50 - speed = - acceleration * time
-(speed - 50)/acceleration = time
+\begin{slide}
+\heading{Keanu's alert}
 
-if (speed - 50)/acceleration <= time to save bus
-	Start saving the bus!
+$speed - acceleration * time = 50$
+
+$50 - speed = - acceleration * time$
+
+$(speed - 50)/acceleration = time$
+
+
+\begin{verbatim}
+if (speed - 50)/acceleration <= time to save bus:
+  alert Start saving the bus!
+\end{verbatim}
+\end{slide}
+
 You don't necessarily care that acceleration is negative though -- but when it is, you do want to know if it's rapidly decelerating, because that changes how much time you have to finish the rescue.
-New tools at our disposal
+
+\begin{slide}
+\heading{New tools at our disposal}
+
 Calculus!
 
-the derivative of speed -> acceleration
+the derivative of speed = acceleration
 
-the derivative of acceleration -> ... jerk
+the derivative of acceleration = ... jerk
 
 (impulse?)
+\end{slide}
 
 
 So timeseries are just curves.  We can apply high school calculus to them!
@@ -332,13 +427,21 @@ So timeseries are just curves.  We can apply high school calculus to them!
 There's a few caveats, though; look close enough and your timeseries are discreet.
 Error spike
 error count
+
 In this example, our errors per second rises, but we have no threshold.  Perhaps your threshold is 0?  What about user generated errors, like 404s?
+
 Rate of errors vs normal rate
 rate of change increases greater than expected
+
 errors per second
 Now we're looking at the rate of errors, we can set the threshold for alerting based on the noise floor of errors.
+
 calculate rate of change of timeseries
-Summary: New tool {\#}1: calculate the rates of things and compare the rate against a threshold.
+\begin{slide}
+Summary: New tool {\#}1: calculate the rates of things and compare the rate
+against a threshold.
+\end{slide}
+
 Another new tool
 Not just looking at the latest data point, or the derivative at the latest point
 
@@ -347,12 +450,15 @@ Look back 5 minutes, 1 hour, 7 days, back to the dawn of time
 
 
 The next new tool alluded to in the Speed example is historical data.  We have a whole time*series* available, so we don't have to limit our checks to only the most recent data point.  I know some checks store the last few data points for calculating rates or trends over the short term.  How many data points is enough?  With the timeseries database, you don't have to answer that question at the check level.
+
 Traffic spike with threshold
 worth getting out of bed for?
+
 Let's say this is a rate of errors which we just started calculating.  Do you want to be paged for a problem that seems to have subsided?
 
 Sure you might want to know about this issue for debugging, but was it necessary to wake you at 3am to tell you about it?
 Δt
+
 Traffic spike with threshold
 worth getting out of bed for?
 NO
@@ -362,7 +468,11 @@ When an alerting condition arrives, why not wait for a bit and see if the condit
 
 Consider also flapping alerts.
 observe timeseries history to gain context
+
+\begin{slide}
 Summary: New tool {\#}2: Historical analysis.
+\end{slide}
+
 Timeseries Have Types
 Counter: monotonically nondecreasing
   "preserves the order" i.e. UP
