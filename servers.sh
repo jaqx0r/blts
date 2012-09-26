@@ -13,11 +13,8 @@ done
 BACKENDS=$(echo $BACKENDS | tr ' ' ',')
 lb/lb --backends $BACKENDS &
 
-rm -f collectd/sock
-mkdir -p collectd
-collectd -C collectd.conf -f &
-
+mkdir -p data
 TARGETS="$BACKENDS,:8080"
-c/c --targets $TARGETS --socketpath collectd/sock &
+c/c --targets $TARGETS &
 
 wait

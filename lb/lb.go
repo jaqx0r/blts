@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -19,6 +21,7 @@ var (
 var (
 	requests = expvar.NewInt("requests")
 	errors   = expvar.NewInt("errors")
+	latency  = expvar.NewMap("latency")
 )
 
 var (
@@ -26,6 +29,7 @@ var (
 )
 
 func handleGet(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	requests.Add(1)
 	bs := strings.Split(*backends, ",")
 	url := fmt.Sprintf("http://%s%s",
@@ -49,6 +53,8 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
 	w.Write(body)
+	l := time.Since(start)
+	latency.Add(fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6)))), 1)
 }
 
 func main() {

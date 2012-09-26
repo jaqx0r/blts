@@ -1,4 +1,4 @@
-\documentclass[online,helvetica]{chaksem}
+\documentclass[online,12pt,helvetica]{chaksem}
 \usepackage{color}
 \usepackage[dvips]{graphicx}
 \begin{document}
@@ -17,13 +17,13 @@ Site Reliability Engineer, Google
 
 
 
-I don't remember the first time I saw "#monitoringsucks" on Twitter, but it's
+I don't remember the first time I saw "{\#}monitoringsucks" on Twitter, but it's
 been a growing theme since then with several devops luminaries all chiming in
 with their 70 characters/cent.
 
 I can appreciate the sentiment.  I once used Nagios and tried to scale it.
-However I can't agree that monitoring sucks.   Monitoring is awesome!
-#monitoringsucks
+however I can't agree that monitoring sucks.   Monitoring is awesome!
+{\#}monitoringsucks
 It sure used to.
 
 I remember using Nagios and cfengine to configure it.
@@ -31,12 +31,12 @@ I remember using Nagios and cfengine to configure it.
 Experimented with cacti.
 
 Now I see collectd, graphite, and a world of new tools.
-#monitoringsucks
+{\#}monitoringsucks
 What to talk about?
 
 I have no idea what has gone on in the real world since then.
 
-These #monitoringsucks people seem to be on the right path... do I have anything new to add?
+These {\#}monitoringsucks people seem to be on the right path... do I have anything new to add?
 Validation
 http://blog.lusis.org/blog/2012/06/05/monitoring-sucking-just-a-little-bit-less/
 
@@ -83,7 +83,7 @@ Alerting,
 Visualising
 
 "If you can't measure it, you can't manage it."
-As W. Edwards Deming says with regard to quality, "if you can't measure it, you can't manage it ..."If you can't measure it, you can't manage it!", is a famous quote of Robert Kaplan, the founder of the BSCas Floyd said, if you can’t measure it, you can’t manage it ... Remember Gordon Baskerville's famous forest management dictum: "If you can't measure it, you can't manage it ...a quote from George Webster that says "If you can't measure it, you can't manage it ...Grove is known for an almost ruthless analytic zeal (at Intel, one of his best-known maxims is "If you can't measure it, you can't manage it"),The cardinal rule of telecommunications: If you can't measure it, you can't manage it." T. TRAVERS WALTRIP ... as Peter Drucker is noted for saying, ‘if you can’t measure it, you can’t manage it ...... If you can't measure it, you can't manage it," Sugrue says... The famous quote attributed to Frederick W. Smith, the founder of Federal Express-"if you can't measure it, you can't manage it"AND PROBABLY THE MOST RELIABLE CITATION OF ALL...... If you can’t measure it, you can’t manage it.” The author of this quote is unknown, but it is quoted all the time.
+ %% As W. Edwards Deming says with regard to quality, "if you can't measure it, you can't manage it ..."If you can't measure it, you can't manage it!", is  famous quote of Robert Kaplan, the founder of the BSCas Floyd said, if you can’t measure it, you can’t manage it ... Remember Gordon Baskerville's famous forest management dictum: "If you can't measure it, you can't manage it ...a quote from George Webster that says "If you can't measure it, you can't manage it ...Grove is known for an almost ruthless analytic zeal (at Intel, one of his best-known maxims is "If you can't measure it, you can't manage it"),The cardinal rule of telecommunications: If you can't measure it, you can't manage it." T. TRAVERS WALTRIP ... as Peter Drucker is noted for saying, ‘if you can’t measure it, you can’t manage it ...... If you can't measure it, you can't manage it," Sugrue says... The famous quote attributed to Frederick W. Smith, the founder of Federal Express-"if you can't measure it, you can't manage it"AND PROBABLY THE MOST RELIABLE CITATION OF ALL...... If you can’t measure it, you can’t manage it.” The author of this quote is unknown, but it is quoted all the time.
 Just some tangential lols.
 Are you measuring?
 Are you really, actually measuring?
@@ -100,7 +100,7 @@ Monitoring systems
 automate the boring parts:
 Measuring,
 Recording,
-Alerting,Visualisation
+%% Alerting,Visualisation
 
 so you have more time to do fun things... and debug the occasional emergency.
 
@@ -120,7 +120,6 @@ Alert
 Visualise
 
 
-
 For example:
 cucumber
 nagios
@@ -244,7 +243,7 @@ I assert that this is gives you the same information as the blackbox probe -- yo
 Alerting on thresholds
 Some real world examples; this one is a good match for the simple check/alert model.
 
-https://www.youtube.com/watch?v=kn_dYZn5TEQ&feature=player_embedded
+%% https://www.youtube.com/watch?v=kn_dYZn5TEQ&feature=player_embedded
 
 Alert when beer supply low
 if cases - 1 - 1 <= 1
@@ -275,7 +274,7 @@ Alerting on rates of change
 
 
 
-src=https://www.youtube.com/embed/pfwmMfyPCB8?rel=0&start=71&end=85&autoplay=1
+%% src=https://www.youtube.com/embed/pfwmMfyPCB8?rel=0&start=71&end=85&autoplay=1
 
 (skip to 1:11)
 
@@ -339,7 +338,7 @@ rate of change increases greater than expected
 errors per second
 Now we're looking at the rate of errors, we can set the threshold for alerting based on the noise floor of errors.
 calculate rate of change of timeseries
-Summary: New tool #1: calculate the rates of things and compare the rate against a threshold.
+Summary: New tool {\#}1: calculate the rates of things and compare the rate against a threshold.
 Another new tool
 Not just looking at the latest data point, or the derivative at the latest point
 
@@ -363,7 +362,7 @@ When an alerting condition arrives, why not wait for a bit and see if the condit
 
 Consider also flapping alerts.
 observe timeseries history to gain context
-Summary: New tool #2: Historical analysis.
+Summary: New tool {\#}2: Historical analysis.
 Timeseries Have Types
 Counter: monotonically nondecreasing
   "preserves the order" i.e. UP

@@ -20,3 +20,13 @@ scale/alert)
 zoo.window
 diff
 
+
+http://www.youtube.com/watch?v=Ug2hLQv6WeY
+
+paste(paste(c("a","b","c"), collapse = ""), "d", sep = ""))
+
+
+rewrite without collectd, straight to csv
+
+
+
