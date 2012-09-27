@@ -19,9 +19,10 @@ var (
 )
 
 var (
-	requests = expvar.NewInt("requests")
-	errors   = expvar.NewInt("errors")
-	latency  = expvar.NewMap("latency")
+	requests   = expvar.NewInt("requests")
+	errors     = expvar.NewInt("errors")
+	latency    = expvar.NewMap("latency")
+	latency_ms = expvar.NewMap("latency_ms")
 )
 
 var (
@@ -50,11 +51,15 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	} else {
 		errors.Add(1)
 	}
+	defer func() {
+		l := time.Since(start)
+		bucket := fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6))))
+		latency.Add(bucket, 1)
+		latency_ms.Add(bucket, l.Nanoseconds()/1e6)
+	}()
 	w.WriteHeader(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
 	w.Write(body)
-	l := time.Since(start)
-	latency.Add(fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6)))), 1)
 }
 
 func main() {
