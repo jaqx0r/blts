@@ -7,30 +7,42 @@ library(mail)
 
 alert <- function(message, detail) sendmail('jaq@spacepants.org',subject=message, message=detail)
 
+# ---
+
+# Load errors
 ez <- r("9001", "errors")
 ez
+
 diff(ez)
 
+# load requests
 rz <- r("9001", "requests")
 diff(rz)
 
 plot(diff(rz))
-plot(diff(ez)/diff(rz))
 
+# error ratio
 er <- diff(ez)/diff(rz)
-er
+er <- er[is.finite(er)]
 
+plot(er)
+
+# filter high error ratio
 er[er > 0.2]
 
-if (er[er > 0.2]) { er[er > 0.2] }
+if (length(er[er > 0.2] > 0)) { er[er > 0.2] }
 
-if (er[er > 0.2]) { alert("error rate high") }
+# alert!
+if (length(er[er > 0.2] > 0)) { alert("error rate high", er[er > 0.2]) }
 
 
+# latency plots
 lmz <- r("9001", "latency_ms")
+
 plot(diff(lmz), plot.type="single", col=c(1:10))
 
 plot(rowSums(diff(lmz)[,1:9])/rowSums(diff(lmz)))
 
-
 over256 <- rowSums(diff(lmz[,8:10]))/rowSums(diff(lmz))
+
+plot(over256)
