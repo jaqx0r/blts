@@ -5,7 +5,7 @@ r <- function(x, y) read.zoo(paste("data/:", x, "-", y, ".csv", sep=""), sep=","
 
 library(mail)
 
-alert <- function(message, detail) sendmail('jaq@spacepants.org',subject=message, message=detail)
+alert <- function(message, detail) sendmail('YOU at example.com',subject=message, message=detail)
 
 # ---
 
