@@ -1,13 +1,13 @@
-all: slides.ps c/c s/s lb/lb
+all: slides/slides.ps c/c s/s lb/lb
 .PHONY: all
 
-%.dvi: %.tex
-	latex $<
+slides/%.dvi: slides/%.tex
+	latex -output-directory slides $<
 
-%.ps: %.dvi
-	dvips $<
+slides/%.ps: slides/%.dvi
+	dvips -o $@ $<
 
-%.eps: %.svg
+slides/%.eps: slides/%.svg
 	convert $< $@
 
 c/c: c/c.go
