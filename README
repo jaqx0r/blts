@@ -6,7 +6,9 @@ This is the source code for the demo, plus slide material, that I used when I pr
 
 In a few days I'll be giving an abridged version to the Sysadmin Miniconf at Linux.conf.au 2014.
 
-The URL for the video from PuppetConf 2011 is http://youtu.be/eq4CnIzw-pE
+The URL for the video from PuppetConf 2012 is http://youtu.be/eq4CnIzw-pE 
+
+The slide deck is at https://docs.google.com/presentation/d/1uTLggLR5HICnSyhTJyQWNeYWZ6niHyCsup7wNFByex4/pub
 
 Have Go installed, and perhaps latex and dvips and ImageMagick for the slides, and of course make, so that the Makefile builds some stuff.
 
@@ -14,4 +16,4 @@ You'll also need a shell to launch the servers.sh launcher and load.sh antagonis
 
 Finally, R to look at demo.R -- I tend to forget how this part works each time I present this -- I think I clag out of a text editor into the R interactive prompt each time.  (As it happens, I run R from Emacs, so it's all just buffers ;-)
 
-Please change the email
+Please change the email in the `alert()' function in the demo to actually get an alert.
