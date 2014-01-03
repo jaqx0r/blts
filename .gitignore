@@ -6,3 +6,6 @@ slides.log
 slides.ps
 collectd
 *.png
+data/*
+.RData
+.Rhistory
