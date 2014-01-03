@@ -12,8 +12,10 @@ The slide deck is at https://docs.google.com/presentation/d/1uTLggLR5HICnSyhTJyQ
 
 Have Go installed, and perhaps latex and dvips and ImageMagick for the slides, and of course make, so that the Makefile builds some stuff.
 
-You'll also need a shell to launch the servers.sh launcher and load.sh antagoniser.
+You'll also need a shell to launch the servers.sh launcher and load.sh antagoniser; the latter also requires `ab' from the apache webserver tools.
 
 Finally, R to look at demo.R -- I tend to forget how this part works each time I present this -- I think I clag out of a text editor into the R interactive prompt each time.  (As it happens, I run R from Emacs, so it's all just buffers ;-)
 
 Please change the email in the `alert()' function in the demo to actually get an alert.
+
+This code is available under the Apache license.
