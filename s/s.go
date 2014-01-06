@@ -30,19 +30,25 @@ var (
 func handleHi(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	requests.Add(1)
+
 	// Perform a "database" "lookup".
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
-	// Fail sometimes
+
+	// Fail sometimes.
 	if rand.Intn(100) > 95 {
 		w.WriteHeader(500)
 		return
 	}
+
+	// Record metrics.
 	defer func() {
 		l := time.Since(start)
 		bucket := fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6))))
 		latency.Add(bucket, 1)
 		latency_ms.Add(bucket, l.Nanoseconds()/1e6)
 	}()
+
+	// Return page content.
 	w.Write([]byte("hi\n"))
 }
 
