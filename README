@@ -15,7 +15,7 @@ https://docs.google.com/presentation/d/1Dq4eRUlkONnVnnXg6M_ZSi6xBLEwe7kjwjx74vFL
 To use the demo code
 --------------------
 
-Have Go installed, and perhaps latex and dvips and ImageMagick for the slides, and of course make, so that the Makefile builds some stuff.
+Have Go installed, and perhaps latex, dvips, chaksem, and ImageMagick for the slides, and of course make, so that the Makefile builds some stuff.
 
 You'll also need a shell to launch the servers.sh launcher and load.sh antagoniser; the latter also requires `ab' from the apache webserver tools.
 

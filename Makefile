@@ -1,5 +1,8 @@
-all: slides/slides.ps c/c s/s lb/lb
+all: c/c s/s lb/lb
 .PHONY: all
+
+slides: slides/slides.ps
+.PHONY: slides
 
 slides/%.dvi: slides/%.tex
 	latex -output-directory slides $<
