@@ -2,8 +2,7 @@ Better Living Through Statistics: Monitoring Doesn't Have To Suck.
 ==================================================================
 
 
-This is the source code for the demo, plus slide material, that I used when I
-presented this talk to
+This is the source code for the demo that I used when I presented this talk to
 
     * PuppetConf 2012
     * again at OSDC 2013
