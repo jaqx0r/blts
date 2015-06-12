@@ -2,7 +2,13 @@ Better Living Through Statistics: Monitoring Doesn't Have To Suck.
 ==================================================================
 
 
-This is the source code for the demo, plus slide material, that I used when I presented this talk to PuppetConf 2012, again at OSDC 2013, and at PuppetCamp Sydney 2013.
+This is the source code for the demo, plus slide material, that I used when I
+presented this talk to
+
+    * PuppetConf 2012
+    * again at OSDC 2013
+    * at PuppetCamp Sydney 2013
+    * using Prometheus as a demo at Monitorama 2015
 
 The URL for the video from PuppetConf 2012 is http://youtu.be/eq4CnIzw-pE 
 
@@ -15,12 +21,16 @@ https://docs.google.com/presentation/d/1Dq4eRUlkONnVnnXg6M_ZSi6xBLEwe7kjwjx74vFL
 To use the demo code
 --------------------
 
-Have Go installed, and perhaps latex, dvips, chaksem, and ImageMagick for the slides, and of course make, so that the Makefile builds some stuff.
+The demo is of a mock service, a web applicatoin frontend, composed of a cluster of application servers and a single loadbalancer.  The loadbalancer is not very good, and the application servers fail often.  An antagonistic load generator drives them past their capable limits.  A collector extracts metrics from all the members of the service.
 
-You'll also need a shell to launch the servers.sh launcher and load.sh antagoniser; the latter also requires `ab' from the apache webserver tools.
+The code uses Go but not in a Go friendly project layout.  But you wouldn't try to import this into your code, would you?
 
-Finally, R to look at demo.R -- I tend to forget how this part works each time I present this -- I think I clag out of a text editor into the R interactive prompt each time.  (As it happens, I run R from Emacs, so it's all just buffers ;-)
+`make` will build the things you need.
 
-Please change the email in the `alert()' function in the demo to actually get an alert.
+`./servers.sh` runs the servers.
+
+`./load.sh` requires `ab` (Apache Bench) from the apache webserver tools.
+
+`./prom.sh` launches Prometheus with the included configuration.  You may need to change the path of the binary in this script.
 
 This code is available under the Apache v2 license.
