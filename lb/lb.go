@@ -1,16 +1,16 @@
 package main
 
 import (
-	"expvar"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -19,11 +19,25 @@ var (
 )
 
 var (
-	requests   = expvar.NewInt("requests")
-	errors     = expvar.NewInt("errors")
-	latency    = expvar.NewMap("latency")
-	latency_ms = expvar.NewMap("latency_ms")
+	requests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "requests", Help: "total requests received"})
+	errors = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "errors", Help: "total errors served"}, []string{"code"})
+	latency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "latency",
+		Help: "request latency"})
+	latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "latency_ms",
+		Help:    "request latency in milliseconds",
+		Buckets: prometheus.ExponentialBuckets(1, 2, 10)})
 )
+
+func init() {
+	prometheus.MustRegister(requests)
+	prometheus.MustRegister(errors)
+	prometheus.MustRegister(latency)
+	prometheus.MustRegister(latency_ms)
+}
 
 var (
 	client *http.Client
@@ -31,13 +45,13 @@ var (
 
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	requests.Add(1)
+	requests.Add(1) // COUNTER
 	bs := strings.Split(*backends, ",")
 	url := fmt.Sprintf("http://%s%s",
 		bs[rand.Intn(len(bs))], r.URL.Path)
 	resp, err := client.Get(url)
 	if err != nil {
-		errors.Add(1)
+		errors.WithLabelValues(err.Error()).Add(1) // MAP
 		log.Println("get:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -49,13 +63,13 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 			h[k] = v
 		}
 	} else {
-		errors.Add(1)
+		errors.WithLabelValues(http.StatusText(resp.StatusCode)).Add(1) // MAP
 	}
 	defer func() {
 		l := time.Since(start)
-		bucket := fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6))))
-		latency.Add(bucket, 1)
-		latency_ms.Add(bucket, l.Nanoseconds()/1e6)
+		ms := float64(l.Nanoseconds()) / 1e6
+		latency.Observe(ms)
+		latency_ms.Observe(ms)
 	}()
 	w.WriteHeader(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -66,5 +80,6 @@ func main() {
 	client = &http.Client{}
 	flag.Parse()
 	http.HandleFunc("/", handleGet)
+	http.Handle("/metrics", prometheus.Handler())
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }

@@ -1,14 +1,13 @@
 package main
 
 import (
-	"expvar"
 	"flag"
-	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -16,12 +15,25 @@ var (
 )
 
 var (
-	requests = expvar.NewInt("requests")
-	errors   = expvar.NewInt("errors")
-	// Buckets of log2 lower bound latency.
-	latency    = expvar.NewMap("latency")
-	latency_ms = expvar.NewMap("latency_ms")
+	requests = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "requests", Help: "total requests received"})
+	errors = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "errors", Help: "total errors served"}, []string{"code"})
+	latency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "latency",
+		Help: "request latency"})
+	latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "latency_ms",
+		Help:    "request latency in milliseconds",
+		Buckets: prometheus.ExponentialBuckets(1, 2, 10)})
 )
+
+func init() {
+	prometheus.MustRegister(requests)
+	prometheus.MustRegister(errors)
+	prometheus.MustRegister(latency)
+	prometheus.MustRegister(latency_ms)
+}
 
 var (
 	zipf = rand.NewZipf(rand.New(rand.NewSource(0)), 1.1, 1, 1000)
@@ -35,17 +47,23 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
 
 	// Fail sometimes.
-	if rand.Intn(100) > 95 {
+	switch v := rand.Intn(100); {
+	case v > 95:
+		errors.WithLabelValues(http.StatusText(500)).Add(1)
 		w.WriteHeader(500)
+		return
+	case v > 85:
+		errors.WithLabelValues(http.StatusText(400)).Add(1)
+		w.WriteHeader(400)
 		return
 	}
 
 	// Record metrics.
 	defer func() {
 		l := time.Since(start)
-		bucket := fmt.Sprintf("%.0f", math.Exp2(math.Logb(float64(l.Nanoseconds()/1e6))))
-		latency.Add(bucket, 1)
-		latency_ms.Add(bucket, l.Nanoseconds()/1e6)
+		ms := float64(l.Nanoseconds()) / 1e6
+		latency.Observe(ms)
+		latency_ms.Observe(ms)
 	}()
 
 	// Return page content.
@@ -56,5 +74,6 @@ func main() {
 	flag.Parse()
 	http.HandleFunc("/favicon.ico", http.NotFound)
 	http.HandleFunc("/hi", handleHi)
+	http.Handle("/metrics", prometheus.Handler())
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
