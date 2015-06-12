@@ -9,3 +9,4 @@ collectd
 data/*
 .RData
 .Rhistory
+/slides/slides.dvi
