@@ -1,0 +1,20 @@
+task:requests:rate10s = rate(requests[10s])
+
+job:requests:rate10s = sum by (job)(task:requests:rate10s)
+
+task:errors:rate10s = rate(errors[10s])
+
+job:errors:rate10s = sum by (job, code)(task:errors:rate10s)
+
+job:errors:ratio_rate10s =
+   sum by (job)(job:errors:rate10s)
+     / on (job)
+   job:requests:rate10s
+
+
+ALERT ErrorRatioTooHigh
+IF job:errors:ratio_rate10s > 0.2 and sum by (job)(job:errors:rate10s) > 1000
+FOR 10s
+WITH { severity="page" }
+SUMMARY "Error ratio on {{$labels.job}} exceeds 20%"
+DESCRIPTION "Error ratio of {{$labels.code}} on {{$labels.job}} is at {{$value}}"

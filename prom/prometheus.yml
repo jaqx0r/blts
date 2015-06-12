@@ -17,4 +17,6 @@ scrape_configs:
       - targets: ['localhost:9001']
 
 rule_files:
-  - 'prom/s.rules'
+  #- 'prom/s.rules'
+  #- 'prom/lb.rules'
+  - 'prom/basic.rules'
