@@ -28,7 +28,7 @@ The code uses Go but not in a Go friendly project layout.  But you wouldn't try 
 
 `./servers.sh` runs the servers.
 
-`./load.sh` requires `ab` (Apache Bench) from the apache webserver tools.
+`./load.sh` requires `ab` (ApacheBench) from the Apache webserver tools.
 
 `./prom.sh` launches Prometheus with the included configuration.  You may need to change the path of the binary in this script.
 
