@@ -1,0 +1,9 @@
+task:requests:rate10s = rate(requests{job="s"}[10s])
+
+job:requests:rate10s = sum(task:requests:rate10s{job="s"})
+
+task:errors:rate10s = rate(errors{job="s"}[10s])
+
+job:errors:rate10s_nokeep = sum(task:errors:rate10s{job="s"}) by (code)
+
+job:errors:rate10s = sum(task:errors:rate10s{job="s"}) by (code) keeping_extra
