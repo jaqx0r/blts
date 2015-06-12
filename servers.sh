@@ -2,7 +2,7 @@
 
 set -e
 
-trap "killall c; killall lb; killall s" HUP TERM INT EXIT
+trap "killall lb; killall s" HUP TERM INT EXIT
 
 export GOMAXPROCS=4
 
