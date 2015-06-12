@@ -15,9 +15,4 @@ done
 BACKENDS=$(echo $BACKENDS | tr ' ' ',')
 (lb/lb --backends $BACKENDS 2>&1 | sed -e "s/^/lb: /") &
 
-rm -rf data
-mkdir -p data
-TARGETS="$BACKENDS,:9001"
-(c/c --targets $TARGETS 2>&1 | sed -e "s/^/c: /") &
-
 wait
