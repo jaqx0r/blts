@@ -6,7 +6,7 @@ trap "killall lb; killall s" HUP TERM INT EXIT
 
 export GOMAXPROCS=4
 
-renice +10 $$
+#renice +10 $$
 
 BACKENDS=""
 for i in $(seq 0 9); do

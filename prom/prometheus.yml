@@ -19,4 +19,6 @@ scrape_configs:
 rule_files:
   #- 'prom/s.rules'
   #- 'prom/lb.rules'
-  - 'prom/basic.rules'
+  - 'prom/errors.rules'
+  - 'prom/latency.rules'
+  - 'prom/task.rules'
