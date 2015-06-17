@@ -23,19 +23,15 @@ var (
 		Name: "requests", Help: "total requests received"})
 	errors = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "errors", Help: "total errors served"}, []string{"code"})
-	latency = prometheus.NewSummary(prometheus.SummaryOpts{
-		Name: "latency",
-		Help: "request latency"})
 	latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "latency_ms",
 		Help:    "request latency in milliseconds",
-		Buckets: prometheus.ExponentialBuckets(1, 2, 10)})
+		Buckets: prometheus.ExponentialBuckets(1, 2, 20)})
 )
 
 func init() {
 	prometheus.MustRegister(requests)
 	prometheus.MustRegister(errors)
-	prometheus.MustRegister(latency)
 	prometheus.MustRegister(latency_ms)
 }
 
@@ -68,7 +64,6 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		l := time.Since(start)
 		ms := float64(l.Nanoseconds()) / 1e6
-		latency.Observe(ms)
 		latency_ms.Observe(ms)
 	}()
 	w.WriteHeader(resp.StatusCode)

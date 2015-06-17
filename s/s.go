@@ -19,20 +19,21 @@ var (
 		Name: "requests", Help: "total requests received"})
 	errors = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "errors", Help: "total errors served"}, []string{"code"})
-	latency = prometheus.NewSummary(prometheus.SummaryOpts{
-		Name: "latency",
-		Help: "request latency"})
 	latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name:    "latency_ms",
 		Help:    "request latency in milliseconds",
-		Buckets: prometheus.ExponentialBuckets(1, 2, 10)})
+		Buckets: prometheus.ExponentialBuckets(1, 2, 20)})
+	backend_latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Name:    "backend_latency_ms",
+		Help:    "request latency in milliseconds",
+		Buckets: prometheus.ExponentialBuckets(1, 2, 20)})
 )
 
 func init() {
 	prometheus.MustRegister(requests)
 	prometheus.MustRegister(errors)
-	prometheus.MustRegister(latency)
 	prometheus.MustRegister(latency_ms)
+	prometheus.MustRegister(backend_latency_ms)
 }
 
 var (
@@ -45,9 +46,11 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	requests.Add(1)
 
 	// Perform a "database" "lookup".
+	backend_start := time.Now()
 	//randLock.Lock() // golang issue 3611
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
 	//randLock.Unlock()
+	backend_latency_ms.Observe(float64(time.Since(backend_start).Nanoseconds() / 1e6))
 
 	// Fail sometimes.
 	switch v := rand.Intn(100); {
@@ -65,7 +68,6 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		l := time.Since(start)
 		ms := float64(l.Nanoseconds()) / 1e6
-		latency.Observe(ms)
 		latency_ms.Observe(ms)
 	}()
 
