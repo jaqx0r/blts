@@ -23,4 +23,4 @@ job:latency_apdex:ratio_rate10s =
 ALERT LatencyTooHigh
 IF job:latency_sli:ratio_rate10s{job="lb"} < 0.555555555
 SUMMARY "😱 Latency on {{$labels.job}} is below SLO"
-DESCRIPTION "Latency SLO is {{$value}}, which is missing our SLO.  {{graphExpr job:latency_ms:rate10s{job=\"{{$labels.job}}\"} }}."
+DESCRIPTION "Latency SLO is {{$value}}, which is missing our SLO.  {{graphLink job:latency_ms:rate10s{job=\"{{$labels.job}}\"} }}."
