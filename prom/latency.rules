@@ -1,0 +1,26 @@
+task:latency_ms:rate10s = rate(latency_ms_bucket[10s])
+
+task:latency_count:rate10s = rate(latency_ms_count{}[10s])
+
+job:latency_ms:rate10s =
+  sum by (job, le) keeping_extra (task:latency_ms:rate10s)
+
+job:latency_count:rate10s =
+  sum by (job) keeping_extra (task:latency_count:rate10s)
+
+job:latency_sli:ratio_rate10s =
+  job:latency_ms:rate10s{le="256"}
+    / on (job)
+  job:latency_count:rate10s
+
+job:latency_apdex:ratio_rate10s =
+  (job:latency_ms:rate10s{le="256"}
+    + on (job)
+   job:latency_ms:rate10s{le="1024"} / 2)
+    / on (job)
+  job:latency_count:rate10s
+
+ALERT LatencyTooHigh
+IF job:latency_sli:ratio_rate10s{job="lb"} < 0.555555555
+SUMMARY "😱 Latency on {{$labels.job}} is below SLO"
+DESCRIPTION "Latency SLO is {{$value}}, which is missing our SLO.  {{graphExpr job:latency_ms:rate10s{job=\"{{$labels.job}}\"} }}."
