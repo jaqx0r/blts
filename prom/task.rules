@@ -1,12 +1,16 @@
+# Synthetic variable 'up' updated when the target is scraped.
 job:up:sum = sum by (job)(up)
 job:up:count = count by (job)(up)
 
-job:up:ratio = job:up:sum / on (job) job:up:count
+job:up:ratio =
+  job:up:sum 
+    / on (job)
+  job:up:count
 
 ALERT TasksMissing
 IF job:up:ratio < 0.9
 FOR 10s
-WITH { severity="page" }
+WITH { severity="info" }
 SUMMARY "Tasks missing from {{$labels.job}}"
 DESCRIPTION "Tasks missing from {{$labels.job}}"
 
@@ -16,7 +20,7 @@ job:resets:sum10s = sum by (job)(task:resets:sum10s)
 
 ALERT TasksRestarting
 IF job:resets:sum1m > 3
-WITH { severity="page" }
+WITH { severity="info" }
 SUMMARY "Tasks in {{$labels.job}} restarting too often"
 DESCRIPTION "Tasks in {{$labels.job}} restarting too often"
 

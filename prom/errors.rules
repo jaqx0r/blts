@@ -12,8 +12,8 @@ job:errors:ratio_rate10s =
    job:requests:rate10s
 
 ALERT ErrorRatioTooHigh
-IF job:errors:ratio_rate10s > 0.2 and job:errors:rate10s > 100
+IF job:errors:ratio_rate10s > 0.2
 FOR 10s
 WITH { severity="page" }
 SUMMARY "Error ratio on {{$labels.job}} exceeds 20%"
-DESCRIPTION "Error ratio on {{$labels.job}} is at {{$value}}.  {{graphLink sort_desc(topk(5, job:errors:rate10s{job=\"$labels.job\"})) }}"
+DESCRIPTION "Error ratio on {{$labels.job}} is at {{$value}}.  {{graphLink job:errors:rate10s }}."

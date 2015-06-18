@@ -1,26 +1,31 @@
-task:latency_ms:rate10s = rate(latency_ms_bucket[10s])
+task:latency_ms_bucket:rate10s = rate(latency_ms_bucket[10s])
 
 task:latency_count:rate10s = rate(latency_ms_count{}[10s])
 
-job:latency_ms:rate10s =
-  sum by (job, le) keeping_extra (task:latency_ms:rate10s)
+job:latency_ms_bucket:rate10s =
+  sum by (job, le) (task:latency_ms_bucket:rate10s)
 
 job:latency_count:rate10s =
-  sum by (job) keeping_extra (task:latency_count:rate10s)
+  sum by (job) (task:latency_count:rate10s)
 
+task:backend_latency_ms_bucket:rate10s = rate(backend_latency_ms_bucket[10s])
+job:backend_latency_ms_bucket:rate10s = sum by (job, le)(task:backend_latency_ms_bucket:rate10s)
+
+# Declare that our latency SLI is at 256 milliseconds
 job:latency_sli:ratio_rate10s =
-  job:latency_ms:rate10s{le="256"}
+  job:latency_ms_bucket:rate10s{le="256"}
     / on (job)
   job:latency_count:rate10s
 
 job:latency_apdex:ratio_rate10s =
-  (job:latency_ms:rate10s{le="256"}
+  (job:latency_ms_bucket:rate10s{le="256"}
     + on (job)
-   job:latency_ms:rate10s{le="1024"} / 2)
+   job:latency_ms_bucket:rate10s{le="1024"} / 2)
     / on (job)
   job:latency_count:rate10s
 
+# and we want to provide a response time SLO of five nines
 ALERT LatencyTooHigh
 IF job:latency_sli:ratio_rate10s{job="lb"} < 0.555555555
 SUMMARY "😱 Latency on {{$labels.job}} is below SLO"
-DESCRIPTION "Latency SLO is {{$value}}, which is missing our SLO.  {{graphLink job:latency_ms:rate10s{job=\"{{$labels.job}}\"} }}."
+DESCRIPTION "Latency SLO is {{$value}}, which is missing our SLO.  {{graphLink job:latency_ms_bucket:rate10s }}."
