@@ -43,23 +43,23 @@ var (
 
 func handleHi(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	requests.Add(1)
+	requests.Add(1) // COUNTER
 
 	// Perform a "database" "lookup".
 	backend_start := time.Now()
 	//randLock.Lock() // golang issue 3611
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
 	//randLock.Unlock()
-	backend_latency_ms.Observe(float64(time.Since(backend_start).Nanoseconds() / 1e6))
+	backend_latency_ms.Observe(float64(time.Since(backend_start).Nanoseconds() / 1e6)) // HISTOGRAM
 
 	// Fail sometimes.
 	switch v := rand.Intn(100); {
 	case v > 95:
-		errors.WithLabelValues(http.StatusText(500)).Add(1)
+		errors.WithLabelValues(http.StatusText(500)).Add(1) // MAP
 		w.WriteHeader(500)
 		return
 	case v > 85:
-		errors.WithLabelValues(http.StatusText(400)).Add(1)
+		errors.WithLabelValues(http.StatusText(400)).Add(1) // MAP
 		w.WriteHeader(400)
 		return
 	}
@@ -68,7 +68,7 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		l := time.Since(start)
 		ms := float64(l.Nanoseconds()) / 1e6
-		latency_ms.Observe(ms)
+		latency_ms.Observe(ms) // HISTOGRAM
 	}()
 
 	// Return page content.

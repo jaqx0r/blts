@@ -64,7 +64,7 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		l := time.Since(start)
 		ms := float64(l.Nanoseconds()) / 1e6
-		latency_ms.Observe(ms)
+		latency_ms.Observe(ms) // HISTOGRAM
 	}()
 	w.WriteHeader(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
