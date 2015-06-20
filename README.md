@@ -17,6 +17,8 @@ I presented an abridged version to the Sysadmin Miniconf at Linux.conf.au 2014, 
 
 https://docs.google.com/presentation/d/1Dq4eRUlkONnVnnXg6M_ZSi6xBLEwe7kjwjx74vFL1N4/pub
 
+Monitorama 2015 slides: https://docs.google.com/presentation/d/1X1rKozAUuF2MVc1YXElFWq9wkcWv3Axdldl8LOH9Vik/edit
+
 To use the demo code
 --------------------
 
