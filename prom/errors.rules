@@ -17,5 +17,5 @@ FOR 10s
 LABELS { severity="page" }
 ANNOTATIONS {
   summary = "Error ratio on {{ $labels.job }} exceeds 20%",
-  description = "Error ratio on {{ $labels.job }} is at {{ $value }}. {{graphLink job:errors:rate10s }}.",
+  description = "Error ratio on {{ $labels.job }} is at {{ $value }}. {{ graphLink \"job:errors:rate10s\" }}.",
 }
