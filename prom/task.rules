@@ -20,7 +20,9 @@ job:resets:sum10s = sum by (job)(task:resets:sum10s)
 
 ALERT TasksRestarting
 IF job:resets:sum1m > 3
-WITH { severity="info" }
-SUMMARY "Tasks in {{$labels.job}} restarting too often"
-DESCRIPTION "Tasks in {{$labels.job}} restarting too often"
+LABELS  { severity="info" }
+ANNOTATIONS {
+summary = "Tasks in {{$labels.job}} restarting too often",
+description =  "Tasks in {{$labels.job}} restarting too often",
+}
 

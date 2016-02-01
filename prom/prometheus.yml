@@ -2,7 +2,7 @@ global:
   scrape_interval: 1s
   evaluation_interval: 1s
 
-  labels:
+  external_labels:
     monitor: 'blts'
 
 scrape_configs:
