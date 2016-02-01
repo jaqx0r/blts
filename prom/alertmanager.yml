@@ -8,7 +8,7 @@ route:
 
 receivers:
  - name: default
- - name: slack-demo
+ - name: 'slack-demo'
    slack_configs:
    - api_url: "https://hooks.slack.com/services/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"
      channel: "#talk-jamie-wilkinson"
