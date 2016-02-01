@@ -10,3 +10,5 @@ data/*
 .RData
 .Rhistory
 /slides/slides.dvi
+prom-data
+am-data
