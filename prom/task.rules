@@ -10,9 +10,11 @@ job:up:ratio =
 ALERT TasksMissing
 IF job:up:ratio < 0.9
 FOR 10s
-WITH { severity="info" }
-SUMMARY "Tasks missing from {{$labels.job}}"
-DESCRIPTION "Tasks missing from {{$labels.job}}"
+LABELS { severity="info" }
+ANNOTATIONS {
+summary = "Tasks missing from {{$labels.job}}",
+DESCRIPTION = "Tasks missing from {{$labels.job}}",
+}
 
 task:resets:sum10s = resets(up[10s]) 
 

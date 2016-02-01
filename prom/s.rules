@@ -15,6 +15,8 @@ job:errors:ratio_rate10s =
 ALERT ErrorRatioTooHigh
 IF job:errors:ratio_rate10s{job="s"} > 0.2
 FOR 10s
-WITH { severity="page" }
-SUMMARY "Error ratio exceeds 20%"
-DESCRIPTION "Error ratio of {{$labels.code}} on {{$labels.job}} is at {{$value}}"
+LABELS { severity="page" }
+ANNOTATIONS {
+SUMMARY = "Error ratio exceeds 20%",
+DESCRIPTION = "Error ratio of {{$labels.code}} on {{$labels.job}} is at {{$value}}",
+}
