@@ -4,7 +4,7 @@ set -e
 
 trap "killall lb; killall s" HUP TERM INT EXIT
 
-export GOMAXPROCS=4
+export GOMAXPROCS=2
 
 renice +10 $$
 
