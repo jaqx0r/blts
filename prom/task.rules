@@ -12,9 +12,10 @@ IF job:up:ratio < 0.9
 FOR 10s
 LABELS { severity="info" }
 ANNOTATIONS {
-summary = "Tasks missing from {{$labels.job}}",
-DESCRIPTION = "Tasks missing from {{$labels.job}}",
+summary = "Tasks missing from {{ $labels.job }}",
+description = "Tasks missing from {{ $labels.job }}: {{ $value }}",
 }
+
 
 task:resets:sum10s = resets(up[10s]) 
 
@@ -22,9 +23,8 @@ job:resets:sum10s = sum by (job)(task:resets:sum10s)
 
 ALERT TasksRestarting
 IF job:resets:sum1m > 3
-LABELS  { severity="info" }
+LABELS { severity="info" }
 ANNOTATIONS {
-summary = "Tasks in {{$labels.job}} restarting too often",
-description =  "Tasks in {{$labels.job}} restarting too often",
+summary = "Tasks in {{ $labels.job }} restarting too often",
+description = "Tasks in {{ $labels.job }} restarting too often",
 }
-
