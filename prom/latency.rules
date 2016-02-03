@@ -28,6 +28,6 @@ job:latency_apdex:ratio_rate10s =
 ALERT LatencyTooHigh
 IF job:latency_sli:ratio_rate10s{job="lb"} < 0.555555555
 ANNOTATIONS {
-summary = "😱 Latency on {{ $labels.job }} is below SLO",
-description = "Latency SLO is {{ $value }}, which is missing our SLO. {{ graphLink \"job:latency_ms_bucket:rate10s\" }}",
+summary = "😱 Latency on {{ $labels.job }} is missing SLO",
+description = "Latency SLI is {{ $value }}, which is below nine fives SLO. {{ graphLink \"job:latency_ms_bucket:rate10s\" }}",
 }
