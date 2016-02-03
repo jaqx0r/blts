@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -37,8 +38,8 @@ func init() {
 }
 
 var (
-	//randLock sync.Mutex
-	zipf = rand.NewZipf(rand.New(rand.NewSource(0)), 1.1, 1, 1000)
+	randLock sync.Mutex
+	zipf     = rand.NewZipf(rand.New(rand.NewSource(0)), 1.1, 1, 1000)
 )
 
 func handleHi(w http.ResponseWriter, r *http.Request) {
@@ -47,9 +48,9 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 
 	// Perform a "database" "lookup".
 	backend_start := time.Now()
-	//randLock.Lock() // golang issue 3611
+	randLock.Lock() // golang issue 3611
 	time.Sleep(time.Duration(zipf.Uint64()) * time.Millisecond)
-	//randLock.Unlock()
+	randLock.Unlock()
 	backend_latency_ms.Observe(float64(time.Since(backend_start).Nanoseconds() / 1e6)) // HISTOGRAM
 
 	// Fail sometimes.
