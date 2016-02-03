@@ -14,8 +14,6 @@ scrape_configs:
       - targets: ['localhost:9001']
 
 rule_files:
-  #- 's.rules'
-  #- 'lb.rules'
   - 'task.rules'
   - 'errors.rules'
   - 'latency.rules'
