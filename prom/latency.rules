@@ -27,7 +27,8 @@ job:latency_apdex:ratio_rate10s =
 # and we want to provide a response time SLO of five nines
 ALERT LatencyTooHigh
 IF job:latency_sli:ratio_rate10s{job="lb"} < 0.555555555
+LABELS { severity="page" }
 ANNOTATIONS {
 summary = "😱 Latency on {{ $labels.job }} is missing SLO",
-description = "Latency SLI is {{ $value }}, which is below nine fives SLO. {{ graphLink \"job:latency_ms_bucket:rate10s\" }}",
+description = "Latency SLI is {{ $value }}, which is below nine fives SLO. http://localhost:9090{{ graphLink \"job:latency_ms_bucket:rate10s\" }}",
 }
