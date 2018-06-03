@@ -1,21 +1,24 @@
-task:requests:rate10s = rate(requests[10s])
+groups:
+  - name: errors
+    rules:
+      - record: task:requests:rate10s
+        expr: rate(requests[10s])
 
-job:requests:rate10s = sum by (job)(task:requests:rate10s)
+      - record: job:requests:rate10s
+        expr: sum by (job)(task:requests:rate10s)
 
-task:errors:rate10s = rate(errors[10s])
+      - record: task:errors:rate10s
+        expr: rate(errors[10s])
 
-job:errors:rate10s = sum by (job, code)(task:errors:rate10s)
+      - record:     job:errors:rate10s
+        expr: sum by (job, code)(task:errors:rate10s)
 
-job:errors:ratio_rate10s =
-   sum by (job)(job:errors:rate10s)
-     / on (job)
-   job:requests:rate10s
+      - record: job:errors:ratio_rate10s
+        expr:    sum by (job)(job:errors:rate10s)            / on (job)   job:requests:rate10s
 
-ALERT ErrorRatioTooHigh
-IF job:errors:ratio_rate10s > 0.2
-FOR 2s
-ANNOTATIONS {
-summary = "Error ratio on {{ $labels.job }} exceeds 20%",
-description = "Error ratio on {{ $labels.job }} is at {{ $value }}. http:/localhost:9090{{ graphLink \"job:errors:rate10s\" }}",
-}
-
+      - alert: ErrorRatioTooHigh
+        expr: job:errors:ratio_rate10s > 0.2
+        for: 2s
+        annotations:
+          summary: "Error ratio on {{ $labels.job }} exceeds 20%"
+          description: "Error ratio on {{ $labels.job }} is at {{ $value }}. http:/localhost:9090{{ graphLink \"job:errors:rate10s\" }}"

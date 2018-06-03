@@ -1,30 +1,37 @@
-# Synthetic variable 'up' updated when the target is scraped.
-job:up:sum = sum by (job)(up)
-job:up:count = count by (job)(up)
+groups:
+- name: task
+  rules:
 
-job:up:ratio =
-  job:up:sum 
-    / on (job)
-  job:up:count
+    # Synthetic variable 'up' updated when the target is scraped.
+    - record: job:up:sum
+      expr: sum by (job)(up)
 
-ALERT TasksMissing
-IF job:up:ratio < 0.9
-FOR 10s
-LABELS { severity="info" }
-ANNOTATIONS {
-summary = "Tasks missing from {{ $labels.job }}",
-description = "Tasks missing from {{ $labels.job }}: {{ $value }}",
-}
+    - record: job:up:count
+      expr: count by (job)(up)
+
+    - record: job:up:ratio
+      expr: job:up:sum     / on (job)  job:up:count
+
+    - alert: TasksMissing
+      expr: job:up:ratio < 0.9
+      for: 10s
+      labels:
+        severity: info
+      annotations:
+        summary : "Tasks missing from {{ $labels.job }}"
+        description: "Tasks missing from {{ $labels.job }}: {{ $value }}"
+
+    - record: task:resets:sum10s
+      expr: resets(up[10s])
+
+    - record: job:resets:sum10s
+      expr: sum by (job)(task:resets:sum10s)
 
 
-task:resets:sum10s = resets(up[10s]) 
-
-job:resets:sum10s = sum by (job)(task:resets:sum10s)
-
-ALERT TasksRestarting
-IF job:resets:sum1m > 3
-LABELS { severity="info" }
-ANNOTATIONS {
-summary = "Tasks in {{ $labels.job }} restarting too often",
-description = "Tasks in {{ $labels.job }} restarting too often",
-}
+    - alert: TasksRestarting
+      expr: job:resets:sum1m > 3
+      labels:
+        severity: info
+      annotations:
+        summary: "Tasks in {{ $labels.job }} restarting too often"
+        description: "Tasks in {{ $labels.job }} restarting too often"
