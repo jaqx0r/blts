@@ -12,3 +12,4 @@ data/*
 /slides/slides.dvi
 prom-data
 am-data
+prometheus*
