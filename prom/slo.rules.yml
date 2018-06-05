@@ -1,0 +1,46 @@
+groups:
+  - name: slo
+    rules:
+
+      # slo_ratio - slo target as fraction of 1
+      - record: error_budget
+        expr: 0.1
+
+      # slo_period  - duration over which measured eg 30d, in seconds
+      - record: slo_period
+        expr: 30 * 60 # 30 minutes
+
+      # slo_exhaustion_duration - alert if burn rate will consume error budget faster than this time
+      - record: burn_period
+        expr: 600 # seconds
+
+      - record: burn_budget
+        expr: error_budget / burn_period
+
+      - record: expected_events
+        expr: sum by (job)(rate(requests[10s])) * on () group_left() slo_period
+
+      # activation threshold of the alert
+      - record: alert_threshold
+        expr: expected_events * on() group_left() burn_budget
+
+      - record: slo_burn_rate
+        expr: sum by (job) (increase(errors{job="lb"}[10s]))
+
+      - alert: SLOBurnRateExceeded
+        expr: slo_burn_rate >= alert_threshold
+
+
+      # - alert: if burn rate too high
+      #   expr: error_rate *
+      #   error rate * time =
+
+      #   rate = count / time
+
+      # 1000 qps
+      # 0.01 error budget = 10 err/s
+      # over a 10m period
+      # total query 1000 * 10 * 60 = 600,000
+      # error budget = 10 * 10 * 60 = 6,000
+
+      # 20 err/s means 5m to burn out, and we consume 1% of those errors (60) in 3 seconds

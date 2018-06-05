@@ -10,6 +10,11 @@ groups:
       - record: task:errors:rate10s
         expr: rate(errors[10s])
 
+      - record: task:errors:ratio_rate10s
+        expr:    sum by (instance)(task:errors:rate10s)            / on (instance)   task:requests:rate10s
+
+        
+
       - record:     job:errors:rate10s
         expr: sum by (job, code)(task:errors:rate10s)
 

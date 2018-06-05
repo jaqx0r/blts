@@ -17,3 +17,4 @@ rule_files:
   - 'task.rules'
   - 'errors.rules'
   - 'latency.rules'
+  - 'slo.rules.yml'
