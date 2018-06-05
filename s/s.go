@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	port = flag.String("port", "8000", "Port to listen on.")
+	port  = flag.String("port", "8000", "Port to listen on.")
+	faily = flag.Bool("faily", false, "Fail more often.")
 )
 
 var (
@@ -55,14 +56,16 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 
 	// Fail sometimes.
 	switch v := rand.Intn(100); {
-	case v > 95:
+	case v >= 99:
 		errors.WithLabelValues(http.StatusText(500)).Add(1) // MAP
 		w.WriteHeader(500)
 		return
-	case v > 85:
-		errors.WithLabelValues(http.StatusText(400)).Add(1) // MAP
-		w.WriteHeader(400)
-		return
+	case v >= 90:
+		if *faily {
+			errors.WithLabelValues(http.StatusText(500)).Add(1) // MAP
+			w.WriteHeader(500)
+			return
+		}
 	}
 
 	// Record metrics.
