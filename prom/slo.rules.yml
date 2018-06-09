@@ -8,17 +8,17 @@ groups:
 
       # slo_period  - duration over which measured eg 30d, in seconds
       - record: slo_period
-        expr: 30 * 60 # 30 minutes
+        expr: 7 * 24 * 60 * 60 # 7d
 
       # slo_exhaustion_duration - alert if burn rate will consume error budget faster than this time
       - record: burn_period
-        expr: 600 # seconds
+        expr: 24 * 60 * 60 # seconds
 
       - record: burn_budget
         expr: error_budget / burn_period
 
       - record: expected_events
-        expr: sum by (job)(rate(requests[10s])) * on () group_left() slo_period
+        expr: sum by (job)(rate(requests[1m])) * on () group_left() slo_period
 
       # activation threshold of the alert
       - record: alert_threshold
