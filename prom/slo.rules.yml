@@ -1,5 +1,25 @@
 groups:
   - name: slo
+    # SLO burn rate alerting.
+    # There are two key observations to make:
+    # 
+    # one is that there is a lot of error in the predictions; the 5m query rate
+    # is presumed to change over a day or week or month, and so the total
+    # expected events is going to change for a given service.  This is fine.
+    # The burn rate is computed over a 10s window.  This is also fine.
+    #
+    # the other is that the alerting threshold is not computed by the actual
+    # SLO's error budget, but one that is scaled to fire if the consumption
+    # rate is *significantly* faster.  This is fine: we only want to page on
+    # actual problems that need immediate human intervention, and in practice
+    # changes to burn rates are not continuous functions, they change gradient
+    # rapidly in response to severe problems.
+    #
+    # The corollary is that "Slow SLO burns" should be observed with an
+    # alternative mechanism, perhaps the same technique with different numbers
+    # that cause a ticket to be filed, or perhaps by weekly review of a console
+    # that has processed the logs of the system to see the actual past
+    # performance.  ¿Por que no los dos?
     rules:
 
       # slo_ratio - slo target as fraction of 1
@@ -14,33 +34,30 @@ groups:
       - record: burn_period
         expr: 24 * 60 * 60 # seconds
 
+      # Optional, not represented here: burn_fraction, scale the slo_period's
+      # error budget by some fraction, i.e alert if burn_fraction of the budget
+      # burns in burn_period.
+
+      # burn_budget: how much of the error budget we can burn before alerting,
+      # effectively an error budget scaled by burn_period (and optionally,
+      # burn_fraction.)
       - record: burn_budget
         expr: error_budget / burn_period
 
+      # expected_events - a prediction of how many total events received by the
+      # system in the slo_period, measured as a linear extrapolation over 5m
+      # window in this case.
       - record: expected_events
         expr: sum by (job)(rate(requests[5m])) * on () group_left() slo_period
 
-      # activation threshold of the alert
+      # activation threshold of the alert, the alerting burn rate of errors.
       - record: alert_threshold
         expr: expected_events * on() group_left() burn_budget
 
+      # The current burn rate, measured over 10s windows.
       - record: slo_burn_rate
         expr: sum by (job) (increase(errors{job="lb"}[10s]))
 
+      # The thing we've all been waiting for, the alert itself.
       - alert: SLOBurnRateExceeded
         expr: slo_burn_rate >= alert_threshold
-
-
-      # - alert: if burn rate too high
-      #   expr: error_rate *
-      #   error rate * time =
-
-      #   rate = count / time
-
-      # 1000 qps
-      # 0.01 error budget = 10 err/s
-      # over a 10m period
-      # total query 1000 * 10 * 60 = 600,000
-      # error budget = 10 * 10 * 60 = 6,000
-
-      # 20 err/s means 5m to burn out, and we consume 1% of those errors (60) in 3 seconds
