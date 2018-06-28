@@ -13,6 +13,7 @@ This is the source code for the demo that I used when I presented this talk to
 * SRECon Americas 2017
 * incorporating SLO Burn alerting for Monitorama 2018, SRECon Asia 2018, and Velocity SJ 2018.
 
+There are Git tags for each presentation so you can jump back to each demo if that pleases you.
 
 The URL for the video from PuppetConf 2012 is http://youtu.be/eq4CnIzw-pE
 
