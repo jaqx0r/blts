@@ -13,3 +13,5 @@ data/*
 prom-data
 am-data
 prometheus*
+graf/data
+graf/logs
