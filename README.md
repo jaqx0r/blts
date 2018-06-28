@@ -9,7 +9,9 @@ This is the source code for the demo that I used when I presented this talk to
 * Sysadmin Miniconf at linux.conf.au 2014
 * using Prometheus as a demo at Monitorama 2015
 * again at linux.conf.au 2016
-* Incorporating SLO Burn alerting forMonitorama 2018, SRECon Asia 2018, and Velocity SJ 2018.
+* Velocity SC 2016
+* SRECon Americas 2017
+* incorporating SLO Burn alerting for Monitorama 2018, SRECon Asia 2018, and Velocity SJ 2018.
 
 
 The URL for the video from PuppetConf 2012 is http://youtu.be/eq4CnIzw-pE
