@@ -18,7 +18,7 @@ groups:
         expr: error_budget / burn_period
 
       - record: expected_events
-        expr: sum by (job)(rate(requests[1m])) * on () group_left() slo_period
+        expr: sum by (job)(rate(requests[5m])) * on () group_left() slo_period
 
       # activation threshold of the alert
       - record: alert_threshold
