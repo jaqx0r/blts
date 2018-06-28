@@ -60,6 +60,8 @@ wouldn't try to import this into your code, would you?
 
 The subdirectory `prom` contains the main config and rules for the Prometheus tools.
 
+The R code is from the version back in 2012 when Prometheus didn't exist, and I couldn't talk about Borgmon. ;-)  I like to keep it here as a reminder.
+
 This code is available under the Apache v2 license.
 
 # Demos
