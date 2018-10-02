@@ -5,4 +5,4 @@ export GOMAXPROCS=4
     --config.file=prom/prometheus.yml \
     --web.external-url=http://127.0.0.1:9090 \
     --web.listen-address=127.0.0.1:9090 \
-    --log.level=debug
+    #--log.level=debug

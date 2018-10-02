@@ -10,7 +10,18 @@ import (
 	"strings"
 	"time"
 
+	openzipkin "github.com/openzipkin/zipkin-go"
+	zipkinHTTP "github.com/openzipkin/zipkin-go/reporter/http"
 	"github.com/prometheus/client_golang/prometheus"
+	ocp "go.opencensus.io/exporter/prometheus"
+	"go.opencensus.io/exporter/zipkin"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/plugin/ochttp/propagation/b3"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
+	"go.opencensus.io/trace"
+	"go.opencensus.io/zpages"
 )
 
 var (
@@ -19,21 +30,35 @@ var (
 )
 
 var (
-	requests = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "requests", Help: "total requests received"})
-	errors = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "errors", Help: "total errors served"}, []string{"code"})
-	latency_ms = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name:    "latency_ms",
-		Help:    "request latency in milliseconds",
-		Buckets: prometheus.ExponentialBuckets(1, 2, 20)})
+	requests   = stats.Int64("requests", "total requests received", stats.UnitDimensionless)
+	errors     = stats.Int64("errors", "total errors served", stats.UnitDimensionless)
+	latency_ms = stats.Float64(
+		"latency_ms",
+		"request latency in milliseconds", stats.UnitMilliseconds)
 )
 
-func init() {
-	prometheus.MustRegister(requests)
-	prometheus.MustRegister(errors)
-	prometheus.MustRegister(latency_ms)
-}
+var (
+	KeyUrl, _   = tag.NewKey("url")
+	KeyCode, _  = tag.NewKey("code")
+	requestView = &view.View{
+		Name:        "requests",
+		Measure:     requests,
+		Description: "total requests received",
+		Aggregation: view.Count()}
+	errorsView = &view.View{
+		Name:        "errors",
+		Measure:     errors,
+		Description: "total errors served",
+		Aggregation: view.Count(),
+		TagKeys:     []tag.Key{KeyCode},
+	}
+	latencyView = &view.View{
+		Name:        "latency_ms",
+		Measure:     latency_ms,
+		Description: "request latency in ms",
+		Aggregation: view.Distribution(prometheus.ExponentialBuckets(1, 2, 20)...),
+	}
+)
 
 var (
 	client *http.Client
@@ -41,30 +66,45 @@ var (
 
 func handleGet(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	requests.Add(1) // COUNTER
+	ctx := r.Context()
+	var span *trace.Span
+	httpformat := &b3.HTTPFormat{}
+	if sc, ok := httpformat.SpanContextFromRequest(r); ok {
+		ctx, span = trace.StartSpanWithRemoteParent(ctx, "get", sc)
+	} else {
+		ctx, span = trace.StartSpan(ctx, "get")
+	}
+	defer span.End()
+	ctx, _ = tag.New(ctx, tag.Insert(KeyUrl, r.URL.Path))
+	stats.Record(ctx, requests.M(1)) // COUNTER
+
 	bs := strings.Split(*backends, ",")
 	url := fmt.Sprintf("http://%s%s",
 		bs[rand.Intn(len(bs))], r.URL.Path)
+	span.Annotate([]trace.Attribute{trace.StringAttribute("backend", url)}, "picked backend")
 	resp, err := client.Get(url)
 	if err != nil {
-		errors.WithLabelValues(err.Error()).Add(1) // MAP
+		stats.RecordWithTags(ctx, []tag.Mutator{
+			tag.Upsert(KeyCode, err.Error())}, errors.M(1)) // MAP
 		log.Println("get:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
+		// Copy headers to response
 		h := w.Header()
 		for k, v := range resp.Header {
 			h[k] = v
 		}
 	} else {
-		errors.WithLabelValues(http.StatusText(resp.StatusCode)).Add(1) // MAP
+		stats.RecordWithTags(ctx, []tag.Mutator{
+			tag.Upsert(KeyCode, http.StatusText(resp.StatusCode))}, errors.M(1)) // MAP
 	}
 	defer func() {
 		l := time.Since(start)
 		ms := float64(l.Nanoseconds()) / 1e6
-		latency_ms.Observe(ms) // HISTOGRAM
+		stats.Record(ctx, latency_ms.M(ms)) // HISTOGRAM
 	}()
 	w.WriteHeader(resp.StatusCode)
 	body, err := ioutil.ReadAll(resp.Body)
@@ -72,9 +112,28 @@ func handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	client = &http.Client{}
 	flag.Parse()
+	if err := view.Register(requestView, errorsView, latencyView); err != nil {
+		log.Fatal(err)
+	}
+	pe, err := ocp.NewExporter(ocp.Options{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	view.RegisterExporter(pe)
+	localEndpoint, err := openzipkin.NewEndpoint("lb", "localhost:"+*port)
+	if err != nil {
+		log.Fatal(err)
+	}
+	reporter := zipkinHTTP.NewReporter("http://localhost:9411:/api/v2/spans")
+	ze := zipkin.NewExporter(reporter, localEndpoint)
+	trace.RegisterExporter(ze)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
+	client = &http.Client{Transport: &ochttp.Transport{}}
+
+	zpages.Handle(http.DefaultServeMux, "/")
 	http.HandleFunc("/", handleGet)
-	http.Handle("/metrics", prometheus.Handler())
+	http.Handle("/metrics", pe)
 	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
