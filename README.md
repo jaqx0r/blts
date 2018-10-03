@@ -11,7 +11,7 @@ This is the source code for the demo that I used when I presented this talk to
 * again at linux.conf.au 2016
 * Velocity SC 2016
 * SRECon Americas 2017
-* incorporating SLO Burn alerting for Monitorama 2018, SRECon Asia 2018, and Velocity SJ 2018.
+* incorporating SLO Burn alerting for Monitorama 2018, SRECon Asia 2018, Velocity SJ 2018, and Velocity NY 2018.
 
 There are Git tags for each presentation so you can jump back to each demo if that pleases you.
 
@@ -38,7 +38,8 @@ not very good, and the application servers fail often.  An antagonistic load
 generator drives them past their capable limits.
 
 [Prometheus](http://prometheus.io) is the metrics collector and alerting engine
-used in this example.
+used in this example.  [Zipkin](http://zipkin.io) is used for capturing traces
+if you choose to add it.
 
 The demo code uses Go but not in a Go friendly project layout.  But you
 wouldn't try to import this into your code, would you?
@@ -58,6 +59,8 @@ wouldn't try to import this into your code, would you?
 `./1000concurrent.sh` keeps 1000 concurrent HTTP sessions open to the loadbalancer.  Because the system latency is about 1s average, this means around 100 qps.  Thanks Little's Law!
 
 `./replace.sh` takes the PID of one backend server and replaces it with a backend that fails more often.  Killing this script causes the entire backend to die.
+
+`./zipkin.sh` runs a local openzipkin in a docker container (based on the [zipkin quickstart](https://zipkin.io/pages/quickstart)) if you want to try out the [opencensus](http://opencensus.io) tracing examples.
 
 The subdirectory `prom` contains the main config and rules for the Prometheus tools.
 
@@ -95,4 +98,7 @@ After running `make`, run the following scripts (at the same time, in different 
 * `./1000concurrent.sh`
 
 Look at the Grafana console at http://127.0.0.1:3000 and load the SLO Burn console.  The Burn rate vs Threshold chart shows you the current short term burn rate vs the estimated threshold.  The threshold estimate is based on a prediction of the total events over the SLO measurement period, but at a consumption rate faster the Burn Period, i.e. page if we are burning at a rate that would consume the entire error budget for one month in the next day.  The maths can be seen in [prom/slo.rules.yml](prom/slo.rules.yml)
+
+Use the `./replace.sh` script to kill the pid of the process that has port 8009 open (ps ef | grep "port :8009"), and see a higher failure rate not yet page because the SLO burn rate is not breached yet.  Then ^C the replace script, killing that backend, and there should be a high enough failure rate to trigger the SLO burn alert.
+
 
