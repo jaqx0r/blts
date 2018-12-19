@@ -102,3 +102,5 @@ Look at the Grafana console at http://127.0.0.1:3000 and load the SLO Burn conso
 Use the `./replace.sh` script to kill the pid of the process that has port 8009 open (ps ef | grep "port :8009"), and see a higher failure rate not yet page because the SLO burn rate is not breached yet.  Then ^C the replace script, killing that backend, and there should be a high enough failure rate to trigger the SLO burn alert.
 
 
+
+** This is not an officially supported Google product **
