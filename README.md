@@ -104,3 +104,5 @@ Use the `./replace.sh` script to kill the pid of the process that has port 8009 
 
 
 ** This is not an officially supported Google product **
+
+There is a similar project at https://github.com/google/prometheus-slo-burn-example 
