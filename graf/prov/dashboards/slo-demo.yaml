@@ -15,9 +15,7 @@
 apiVersion: 1
 
 providers:
-  - name: 'slo demo'
-    orgId: 1
-    folder: ''
+  - name: 'Slo Burn Demo'
     type: file
     options:
-      path: graf/prov/dashboards
+      path: /graf/prov/dashboards
