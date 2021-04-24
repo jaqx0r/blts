@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -37,8 +38,9 @@ import (
 )
 
 var (
-	port  = flag.String("port", "8000", "Port to listen on.")
-	faily = flag.Bool("faily", false, "Fail more often.")
+	port       = flag.String("port", "8000", "Port to listen on.")
+	faily      = flag.Bool("faily", false, "Fail more often.")
+	zipkinAddr = flag.String("zipkin", "localhost:9411", "Zipkin address")
 )
 
 var (
@@ -163,14 +165,16 @@ func main() {
 		log.Fatal(err)
 	}
 	view.RegisterExporter(pe)
-	localEndpoint, err := openzipkin.NewEndpoint("s", "localhost:"+*port)
-	if err != nil {
-		log.Fatal(err)
+	if *zipkinAddr != "" {
+		localEndpoint, err := openzipkin.NewEndpoint("s", "servers:"+*port)
+		if err != nil {
+			log.Fatal(err)
+		}
+		reporter := zipkinHTTP.NewReporter(fmt.Sprintf("http://%s:/api/v2/spans", *zipkinAddr))
+		ze := zipkin.NewExporter(reporter, localEndpoint)
+		trace.RegisterExporter(ze)
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	}
-	reporter := zipkinHTTP.NewReporter("http://localhost:9411:/api/v2/spans")
-	ze := zipkin.NewExporter(reporter, localEndpoint)
-	trace.RegisterExporter(ze)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	http.HandleFunc("/favicon.ico", http.NotFound)
 	http.HandleFunc("/hi", handleHi)
 	http.Handle("/metrics", pe)

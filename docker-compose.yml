@@ -30,4 +30,13 @@ services:
     environment:
       GF_PATHS_CONFIG: /graf/grafana.ini
       GF_PATHS_PROVISIONING: /graf/prov
-
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+  servers:
+    build: .
+    ports:
+      - "8000-8009:8000-8009"
+      - "9001:9001"
+    command: "--zipkin=zipkin:9411"

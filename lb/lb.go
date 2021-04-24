@@ -39,8 +39,9 @@ import (
 )
 
 var (
-	port     = flag.String("port", "9001", "Port to listen on.")
-	backends = flag.String("backends", "", "List of backend addesses, separated by commas, to loadbalance.")
+	port       = flag.String("port", "9001", "Port to listen on.")
+	backends   = flag.String("backends", "", "List of backend addesses, separated by commas, to loadbalance.")
+	zipkinAddr = flag.String("zipkin", "localhost:9411", "Zipkin address")
 )
 
 var (
@@ -135,14 +136,16 @@ func main() {
 		log.Fatal(err)
 	}
 	view.RegisterExporter(pe)
-	localEndpoint, err := openzipkin.NewEndpoint("lb", "localhost:"+*port)
-	if err != nil {
-		log.Fatal(err)
+	if *zipkinAddr != "" {
+		localEndpoint, err := openzipkin.NewEndpoint("lb", "servers:"+*port)
+		if err != nil {
+			log.Fatal(err)
+		}
+		reporter := zipkinHTTP.NewReporter(fmt.Sprintf("http://%s:/api/v2/spans", *zipkinAddr))
+		ze := zipkin.NewExporter(reporter, localEndpoint)
+		trace.RegisterExporter(ze)
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 	}
-	reporter := zipkinHTTP.NewReporter("http://localhost:9411:/api/v2/spans")
-	ze := zipkin.NewExporter(reporter, localEndpoint)
-	trace.RegisterExporter(ze)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	client = &http.Client{Transport: &ochttp.Transport{}}
 
