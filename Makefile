@@ -15,6 +15,10 @@
 all: s/s lb/lb
 .PHONY: all
 
+clean:
+	rm -rf s/s lb/lb
+.PHONY: clean
+
 s/s: s/s.go
 	cd s && go build
 
