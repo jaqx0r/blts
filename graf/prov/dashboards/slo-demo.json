@@ -366,7 +366,7 @@
       "type": "table"
     }
   ],
-  "refresh": "5s",
+  "refresh": "1s",
   "schemaVersion": 16,
   "style": "dark",
   "tags": [],
