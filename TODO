@@ -1,0 +1,2 @@
+- use an apache-bench container like jordi/ab or devth/alpine-bench for the load test
+- figure out how to inject replace.sh in a container
