@@ -21,6 +21,16 @@ services:
       - "9090:9090"
     volumes:
       - ./prom:/etc/prometheus
+    depends_on:
+      - alertmanager
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./prom:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/alertmanager.yml'
   grafana:
     image: grafana/grafana
     ports:
@@ -30,6 +40,8 @@ services:
     environment:
       GF_PATHS_CONFIG: /graf/grafana.ini
       GF_PATHS_PROVISIONING: /graf/prov
+    depends_on:
+      - prometheus
   zipkin:
     image: openzipkin/zipkin
     ports:
@@ -40,3 +52,6 @@ services:
       - "8000-8009:8000-8009"
       - "9001:9001"
     command: "--zipkin=zipkin:9411"
+    depends_on:
+      - zipkin
+      - prometheus
