@@ -21,16 +21,6 @@ services:
       - "9090:9090"
     volumes:
       - ./prom:/etc/prometheus
-    depends_on:
-      - alertmanager
-  alertmanager:
-    image: prom/alertmanager
-    ports:
-      - "9093:9093"
-    volumes:
-      - ./prom:/etc/prometheus
-    command:
-      - '--config.file=/etc/prometheus/alertmanager.yml'
   grafana:
     image: grafana/grafana
     ports:
