@@ -14,8 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+date
 export GOMAXPROCS=4
 renice +10 $$
 
 kill $1
-s/s --port 8009 --faily
+s/s --port 8009 --faily --zipkin=""

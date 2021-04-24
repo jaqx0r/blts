@@ -75,10 +75,16 @@ Start the system with `docker-compose up`, and then run `./1000concurrent.sh`.
 
 Look at the Grafana console at http://localhost:3000 and see the SLO Burn Demo console.  The Burn rate vs Threshold chart shows you the current short term burn rate vs the estimated threshold.  The threshold estimate is based on a prediction of the total events over the SLO measurement period, but at a consumption rate faster the Burn Period, i.e. page if we are burning at a rate that would consume the entire error budget for one month in the next day.  The maths can be seen in [prom/slo.rules.yml](prom/slo.rules.yml)
 
-Use the `./replace.sh` script to kill the pid of the process that has port 8009 open (ps ef | grep "port :8009"), and see a higher failure rate not yet page because the SLO burn rate is not breached yet.  Then ^C the replace script, killing that backend, and there should be a high enough failure rate to trigger the SLO burn alert.
+To demo a failure of a backend, you need to log into the servers container and run the `replace.sh` script with the PID of the old backend we want to cause to fail.
+
+`docker exec -it blts_servers_1 sh` to get a shell in the container.  Do a `ps | grep "[p]ort 8009"` to find the PID of the server, and then run `./replace <pid>`.
+
+On the dashboard, you'll see a higher failure rate, but not yet an alert because the SLO burn rate has not been breached yet.
+
+`^C` the replace script, stopping that backend server entirely, and there should be a high enough failure rate to trigger the SLO burn alert on the console.
 
 
 
-** This is not an officially supported Google product **
+**This is not an officially supported Google product**
 
-There is a similar project at https://github.com/google/prometheus-slo-burn-example 
+There is a similar project at https://github.com/google/prometheus-slo-burn-example
