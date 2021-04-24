@@ -170,7 +170,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		reporter := zipkinHTTP.NewReporter(fmt.Sprintf("http://%s:/api/v2/spans", *zipkinAddr))
+		reporter := zipkinHTTP.NewReporter(fmt.Sprintf("http://%s/api/v2/spans", *zipkinAddr))
 		ze := zipkin.NewExporter(reporter, localEndpoint)
 		trace.RegisterExporter(ze)
 		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
