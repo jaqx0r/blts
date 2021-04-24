@@ -20,7 +20,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prom/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prom:/etc/prometheus
   grafana:
     image: grafana/grafana
     ports:
