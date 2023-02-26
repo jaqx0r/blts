@@ -166,7 +166,7 @@ func main() {
 	}
 	view.RegisterExporter(pe)
 	if *zipkinAddr != "" {
-		localEndpoint, err := openzipkin.NewEndpoint("s", "servers:"+*port)
+		localEndpoint, err := openzipkin.NewEndpoint("s", "localhost:"+*port)
 		if err != nil {
 			log.Fatal(err)
 		}

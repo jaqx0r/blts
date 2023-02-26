@@ -16,3 +16,5 @@ prometheus*
 graf/logs
 /README.html
 /graf/data/
+/lb
+/s

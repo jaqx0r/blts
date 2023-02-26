@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all: s/s lb/lb
+all: ./s ./lb
 .PHONY: all
 
 clean:
-	rm -rf s/s lb/lb
+	rm -rf ./s ./lb
 .PHONY: clean
 
-s/s: s/s.go
-	cd s && go build
+./s: cmd/s/s.go
+	go build ./cmd/s
 
-lb/lb: lb/lb.go
-	cd lb && go build
+./lb: cmd/lb/lb.go
+	go build ./cmd/lb
 
 rules := $(wildcard prom/*.rules)
 
