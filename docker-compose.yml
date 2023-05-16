@@ -15,19 +15,19 @@
 version: "3"
 
 services:
-  zipkin:
-    userns_mode: keep-id
-    image: docker.io/openzipkin/zipkin
-    ports:
-      - "9411:9411"
+  # zipkin:
+  #   userns_mode: keep-id
+  #   image: docker.io/openzipkin/zipkin
+  #   ports:
+  #     - "9411:9411"
   servers:
     build: .
     ports:
       - "8000-8009:8000-8009"
       - "9001:9001"
-    command: "--zipkin=zipkin:9411"
-    depends_on:
-      - zipkin
+    #command: "--zipkin=zipkin:9411"
+    # depends_on:
+    #   - zipkin
   prometheus:
     userns_mode: keep-id
     image: docker.io/prom/prometheus
