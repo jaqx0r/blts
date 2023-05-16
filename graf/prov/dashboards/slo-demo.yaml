@@ -15,7 +15,9 @@
 apiVersion: 1
 
 providers:
-  - name: 'Slo Burn Demo'
+  - name: 'SLO Burn Demo'
     type: file
+    disableDeletion: true
+    allowUiUpdates: true
     options:
       path: /graf/prov/dashboards

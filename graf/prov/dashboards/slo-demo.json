@@ -1,35 +1,12 @@
 {
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "5.1.3"
-    },
-    {
-      "type": "panel",
-      "id": "graph",
-      "name": "Graph",
-      "version": "5.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "5.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": "5.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -39,25 +16,30 @@
     ]
   },
   "editable": true,
-  "gnetId": null,
+  "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
   "links": [],
+  "liveNow": false,
   "panels": [
     {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P3FEB00294C5CB577"
+      },
       "description": "Based on current rate of events, compute the total number of events we'll expect to see over the total SLO period",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 2,
       "legend": {
         "avg": false,
@@ -72,7 +54,11 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
+      "pluginVersion": "9.5.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -82,6 +68,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P3FEB00294C5CB577"
+          },
           "expr": "expected_events{job=\"lb\"}",
           "format": "time_series",
           "intervalFactor": 1,
@@ -89,8 +79,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
+      "timeRegions": [],
       "title": "Estimated Total Events in SLO Period",
       "tooltip": {
         "shared": true,
@@ -99,33 +88,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -133,15 +113,20 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P3FEB00294C5CB577"
+      },
       "description": "Shows just the errors being served as an example of how the slope of this line impacts the burn rate.",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 12,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 4,
       "legend": {
         "avg": false,
@@ -156,7 +141,11 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
+      "pluginVersion": "9.5.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -166,6 +155,10 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P3FEB00294C5CB577"
+          },
           "expr": "sum without (code)(errors{job=\"lb\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -173,8 +166,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
+      "timeRegions": [],
       "title": "Cumulative Errors",
       "tooltip": {
         "shared": true,
@@ -183,33 +175,24 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
@@ -217,15 +200,20 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P3FEB00294C5CB577"
+      },
       "description": "shows the current rate of consumption of errors (burn rate) vresus the computed threshold that would fire an alert (based on the current total expected events within SLO period)",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 9,
         "w": 12,
         "x": 0,
         "y": 9
       },
+      "hiddenSeries": false,
       "id": 6,
       "legend": {
         "avg": false,
@@ -240,7 +228,11 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
       "percentage": false,
+      "pluginVersion": "9.5.2",
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -250,12 +242,20 @@
       "steppedLine": false,
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P3FEB00294C5CB577"
+          },
           "expr": "slo_burn_rate{job=\"lb\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P3FEB00294C5CB577"
+          },
           "expr": "alert_threshold{job=\"lb\"}",
           "format": "time_series",
           "intervalFactor": 1,
@@ -263,8 +263,7 @@
         }
       ],
       "thresholds": [],
-      "timeFrom": null,
-      "timeShift": null,
+      "timeRegions": [],
       "title": "Burn Rate vs Threshold",
       "tooltip": {
         "shared": true,
@@ -273,38 +272,32 @@
       },
       "type": "graph",
       "xaxis": {
-        "buckets": null,
         "mode": "time",
-        "name": null,
         "show": true,
         "values": []
       },
       "yaxes": [
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         },
         {
           "format": "short",
-          "label": null,
           "logBase": 1,
-          "max": null,
-          "min": null,
           "show": true
         }
       ],
       "yaxis": {
-        "align": false,
-        "alignLevel": null
+        "align": false
       }
     },
     {
       "columns": [],
-      "datasource": "prom",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "P3FEB00294C5CB577"
+      },
       "fontSize": "100%",
       "gridPos": {
         "h": 9,
@@ -314,7 +307,6 @@
       },
       "id": 8,
       "links": [],
-      "pageSize": null,
       "scroll": true,
       "showHeader": true,
       "sort": {
@@ -324,13 +316,14 @@
       "styles": [
         {
           "alias": "Time",
+          "align": "auto",
           "dateFormat": "YYYY-MM-DD HH:mm:ss",
           "pattern": "Time",
           "type": "date"
         },
         {
           "alias": "",
-          "colorMode": null,
+          "align": "auto",
           "colors": [
             "rgba(245, 54, 54, 0.9)",
             "rgba(237, 129, 40, 0.89)",
@@ -345,6 +338,10 @@
       ],
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P3FEB00294C5CB577"
+          },
           "expr": "ALERTS{alertname=\"SLOBurnRateExceeded\",alertstate=\"firing\"}",
           "format": "table",
           "intervalFactor": 1,
@@ -353,11 +350,11 @@
       ],
       "title": "Alerts",
       "transform": "table",
-      "type": "table"
+      "type": "table-old"
     }
   ],
   "refresh": "1s",
-  "schemaVersion": 16,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -395,5 +392,6 @@
   "timezone": "",
   "title": "SLO Burn Demo",
   "uid": "pgG0oz9Gk",
-  "version": 4
+  "version": 1,
+  "weekStart": ""
 }
