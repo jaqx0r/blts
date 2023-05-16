@@ -41,11 +41,11 @@ generator drives them past their capable limits.
 used in this example.  [Zipkin](http://zipkin.io) is used for capturing traces
 if you choose to add it.
 
-The demo uses Docker Compose to start up the environment.  You'll get a Grafana with the SLO Dashboard, a Prometheus, a Servers image containing the fake cluster and load balancer, and a Zipkin.
+The demo uses Podman Compose to start up the environment.  You'll get a Grafana with the SLO Dashboard, a Prometheus, a Servers image containing the fake cluster and load balancer, and a Zipkin.
 
-`./load.sh` requires `ab` (ApacheBench) from the Apache webserver tools.  `./load-nice.sh` is the non-antagonistic version.
+`./load.sh` requires `ab` (ApacheBench) from the Apache webserver tools (`apache2-utils`).  `./load-nice.sh` is the non-antagonistic version.
 
-`./1000concurrent.sh` keeps 1000 concurrent HTTP sessions open to the loadbalancer.  Because the system latency is about 1s average, this means around 100 qps.  Thanks Little's Law!
+`./1000concurrent.sh` keeps 1000 concurrent HTTP sessions open to the loadbalancer.  Because the system latency is about 1s average, this means around 100 qps.  Thanks, Little's Law!
 
 `./replace.sh` takes the PID of one backend server and replaces it with a backend that fails more often.  Killing this script causes the entire backend to die.
 

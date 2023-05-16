@@ -15,24 +15,8 @@
 version: "3"
 
 services:
-  prometheus:
-    image: docker.io/prom/prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prom:/etc/prometheus
-  grafana:
-    image: docker.io/grafana/grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./graf:/graf
-    environment:
-      GF_PATHS_CONFIG: /graf/grafana.ini
-      GF_PATHS_PROVISIONING: /graf/prov
-    depends_on:
-      - prometheus
   zipkin:
+    userns_mode: keep-id    
     image: docker.io/openzipkin/zipkin
     ports:
       - "9411:9411"
@@ -44,4 +28,24 @@ services:
     command: "--zipkin=zipkin:9411"
     depends_on:
       - zipkin
+  prometheus:
+    userns_mode: keep-id
+    image: docker.io/prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prom:/etc/prometheus
+    depends_on:
+      - servers
+  grafana:
+    userns_mode: keep-id    
+    image: docker.io/grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./graf:/graf
+    environment:
+      GF_PATHS_CONFIG: /graf/grafana.ini
+      GF_PATHS_PROVISIONING: /graf/prov
+    depends_on:
       - prometheus
