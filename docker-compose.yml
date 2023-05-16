@@ -16,13 +16,13 @@ version: "3"
 
 services:
   prometheus:
-    image: prom/prometheus
+    image: docker.io/prom/prometheus
     ports:
       - "9090:9090"
     volumes:
       - ./prom:/etc/prometheus
   grafana:
-    image: grafana/grafana
+    image: docker.io/grafana/grafana
     ports:
       - "3000:3000"
     volumes:
@@ -33,7 +33,7 @@ services:
     depends_on:
       - prometheus
   zipkin:
-    image: openzipkin/zipkin
+    image: docker.io/openzipkin/zipkin
     ports:
       - "9411:9411"
   servers:

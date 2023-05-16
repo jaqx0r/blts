@@ -61,7 +61,9 @@ This code is available under the Apache v2 license.
 
 The first demo series is based around the idea of alerting from timeseries, not from check scripts.
 
-After starting `docker-compose up`, start the demo with `./load-nice.sh`.  Go to the prometheus console at http://localhost:9090/alerts and observe no alerts being fired.
+Make sure you have `golang-github-containernetworking-plugin-dnsname` installed for the container networking DNS support.
+
+Start the containers with `podman-compose up`, and then start the demo with `./load-nice.sh`.  Go to the prometheus console at http://localhost:9090/alerts and observe no alerts being fired.
 
 Stop `load-nice.sh` and start up `./load.sh`.  The system should quickly cascade to failure and you'll get some alerts firing.
 

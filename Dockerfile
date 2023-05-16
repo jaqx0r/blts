@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM docker.io/golang:alpine AS builder
 WORKDIR /blts
 RUN apk add --update make
 COPY go.mod .
@@ -7,7 +7,7 @@ RUN go mod download
 COPY . .
 RUN make clean all
 
-FROM alpine AS servers
+FROM docker.io/alpine AS servers
 COPY servers.sh servers.sh
 COPY replace.sh replace.sh
 COPY --from=builder /blts/s s
