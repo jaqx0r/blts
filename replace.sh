@@ -18,5 +18,6 @@ date
 export GOMAXPROCS=4
 renice +10 $$
 
-kill $1
+pid=$(pgrep -f "[p]ort 8009")
+kill $pid
 ./s --port 8009 --faily
