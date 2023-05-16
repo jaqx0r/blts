@@ -12,6 +12,7 @@ This is the source code for the demo that I used when I presented this talk to
 * Velocity SC 2016
 * SRECon Americas 2017
 * incorporating SLO Burn alerting for Monitorama 2018, SRECon Asia 2018, Velocity SJ 2018, and Velocity NY 2018.
+* SLOconf Sydney 2023
 
 There are Git tags for each presentation so you can jump back to each demo if that pleases you.
 
