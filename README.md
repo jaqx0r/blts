@@ -79,7 +79,7 @@ Look at the Grafana console at http://localhost:3000 and see the SLO Burn Demo c
 
 To demo a failure of a backend, you need to log into the servers container and run the `replace.sh` script with the PID of the old backend we want to cause to fail.
 
-`docker exec -it blts_servers_1 sh` to get a shell in the container.  Do a `ps | grep "[p]ort 8009"` to find the PID of the server, and then run `./replace <pid>`.
+`podman exec -it blts_servers_1 sh` to get a shell in the container.  Do a `ps | grep "[p]ort 8009"` to find the PID of the server, and then run `./replace <pid>`.
 
 On the dashboard, you'll see a higher failure rate, but not yet an alert because the SLO burn rate has not been breached yet.
 
