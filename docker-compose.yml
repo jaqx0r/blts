@@ -16,7 +16,7 @@ version: "3"
 
 services:
   zipkin:
-    userns_mode: keep-id    
+    userns_mode: keep-id
     image: docker.io/openzipkin/zipkin
     ports:
       - "9411:9411"
@@ -38,7 +38,7 @@ services:
     depends_on:
       - servers
   grafana:
-    userns_mode: keep-id    
+    userns_mode: keep-id
     image: docker.io/grafana/grafana
     ports:
       - "3000:3000"
