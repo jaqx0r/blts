@@ -74,4 +74,4 @@ groups:
 
       # The thing we've all been waiting for, the alert itself.
       - alert: SLOBurnRateExceeded
-        expr: slo_burn_rate >= alert_threshold
+        expr: slo_burn_rate >= alert_threshold and alert_threshold > 0
