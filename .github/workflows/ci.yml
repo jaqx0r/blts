@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    tags:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+permissions:
+  actions: none
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      # publish-unit-test-action writes to the PRefix
+      pull-requests: write
+      # and writes to the checks API
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: mount bazel cache
+        uses: actions/cache@v4
+        with:
+          path: "~/.cache/bazel"
+          key: bazel-${{ hashFiles('MODULE.bazel') }}
+      - name: bazel build
+        run: bazel build //...
+      - name: bazel test
+        run bazel coverage --test_output=all --combined_report=lcov --instrument_test_targets --nocache_test_results --instrumentation_filter="^//" //...
+      - uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            $(bazel info bazel-testlogs)/**/test.xml
