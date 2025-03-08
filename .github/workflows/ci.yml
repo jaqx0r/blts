@@ -21,11 +21,14 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@v4
-      - name: mount bazel cache
-        uses: actions/cache@v4
+      - uses: bazel-contrib/setup-bazel@0.14.0
         with:
-          path: "~/.cache/bazel"
-          key: bazel-${{ hashFiles('MODULE.bazel') }}
+          # Avoid downloading Bazel each time
+          bazelisk-cache: true
+          # Store build cache per workflow
+          disk-cache: ${{ github.workflow }}
+          # Share repository cache between workflows
+          repository-cache: true
       - name: bazel build
         run: bazel build //...
       - name: bazel test
