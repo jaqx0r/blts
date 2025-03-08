@@ -25,7 +25,7 @@ use_repo(
 )
 
 # `rules_oci` and `aspect_bazel_lib`'s `tar` for making container images.
-bazel_dep(name = "aspect_bazel_lib", version = "2.10.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.14.0")
 bazel_dep(name = "rules_oci", version = "2.0.1")
 bazel_dep(name = "platforms", version = "0.0.11")
 
