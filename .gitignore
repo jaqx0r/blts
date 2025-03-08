@@ -18,3 +18,7 @@ graf/logs
 /graf/data/
 /lb
 /s
+/bazel-bin
+/bazel-blts
+/bazel-out
+/bazel-testlogs

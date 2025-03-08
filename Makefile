@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all: ./s ./lb
-.PHONY: all
-
-clean:
-	rm -rf ./s ./lb
-.PHONY: clean
-
-./s: cmd/s/s.go
-	go build ./cmd/s
-
-./lb: cmd/lb/lb.go
-	go build ./cmd/lb
-
 rules := $(wildcard prom/*.rules)
 
 check-rules: $(rules)

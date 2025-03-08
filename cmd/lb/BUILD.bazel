@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "lb_lib",
+    srcs = ["lb.go"],
+    importpath = "github.com/jaqx0r/blts/cmd/lb",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_openzipkin_zipkin_go//:zipkin-go",
+        "@com_github_openzipkin_zipkin_go//reporter/http",
+        "@com_github_prometheus_client_golang//prometheus",
+        "@io_opencensus_go//plugin/ochttp",
+        "@io_opencensus_go//plugin/ochttp/propagation/b3",
+        "@io_opencensus_go//stats",
+        "@io_opencensus_go//stats/view",
+        "@io_opencensus_go//tag",
+        "@io_opencensus_go//trace",
+        "@io_opencensus_go//zpages",
+        "@io_opencensus_go_contrib_exporter_prometheus//:prometheus",
+        "@io_opencensus_go_contrib_exporter_zipkin//:zipkin",
+    ],
+)
+
+go_binary(
+    name = "lb",
+    embed = [":lb_lib"],
+    visibility = ["//visibility:public"],
+)
