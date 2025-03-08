@@ -1,4 +1,7 @@
+load("@aspect_bazel_lib//lib:tar.bzl", "mtree_mutate", "mtree_spec", "tar")
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
 load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load", "oci_push")
 
 go_library(
     name = "s_lib",
@@ -30,4 +33,45 @@ go_test(
     name = "s_test",
     srcs = ["s_test.go"],
     embed = [":s_lib"],
+)
+
+mtree_spec(
+    name = "layer_mtree_spec",
+    srcs = [":s"],
+)
+
+mtree_mutate(
+    name = "layer_mtree",
+    mtree = ":layer_mtree_spec",
+    strip_prefix = "cmd/s/s_",
+)
+
+tar(
+    name = "layer",
+    srcs = [":s"],
+    mtree = ":layer_mtree",
+)
+
+platform_transition_filegroup(
+    name = "transitioned_layer",
+    srcs = [":layer"],
+    target_platform = select({
+        "@platforms//cpu:arm64": "@rules_go//go/toolchain:linux_arm64",
+        "@platforms//cpu:x86_64": "@rules_go//go/toolchain:linux_amd64",
+    }),
+)
+
+oci_image(
+    name = "image",
+    base = "@distroless_base",
+    entrypoint = ["/s"],
+    exposed_ports = ["8000/tcp"],
+    tars = [":layer"],
+    visibility = ["//visibility:public"],
+)
+
+oci_load(
+    name = "load",
+    image = ":image",
+    repo_tags = ["s:latest"],
 )

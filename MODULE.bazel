@@ -23,3 +23,20 @@ use_repo(
     "io_opencensus_go_contrib_exporter_prometheus",
     "io_opencensus_go_contrib_exporter_zipkin",
 )
+
+# `rules_oci` and `aspect_bazel_lib`'s `tar` for making container images.
+bazel_dep(name = "aspect_bazel_lib", version = "2.10.0")
+bazel_dep(name = "rules_oci", version = "2.0.1")
+bazel_dep(name = "platforms", version = "0.0.11")
+
+oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
+oci.pull(
+    name = "distroless_base",
+    digest = "sha256:74ddbf52d93fafbdd21b399271b0b4aac1babf8fa98cab59e5692e01169a1348",
+    image = "gcr.io/distroless/base",
+    platforms = [
+        "linux/amd64",
+        "linux/arm64/v8",
+    ],
+)
+use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "distroless_base_linux_arm64_v8")
