@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "demo_lib",
+    srcs = ["demo.go"],
+    data = [
+        "//cmd/lb:image",
+        "//cmd/s:image",
+    ],
+    importpath = "github.com/jaqx0r/blts/cmd/demo",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_google_go_containerregistry//pkg/v1/layout:go_default_library",
+        "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
+        "@rules_go//go/runfiles",
+    ],
+)
+
+go_binary(
+    name = "demo",
+    embed = [":demo_lib"],
+    visibility = ["//visibility:public"],
+)
