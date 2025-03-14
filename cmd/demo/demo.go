@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"context"
 	"fmt"
 	"log"
@@ -12,11 +13,21 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/layout"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/testcontainers/testcontainers-go"
+	 "github.com/testcontainers/testcontainers-go/network"
+
 )
 
 type DemoContainers struct {
 	backends     [10]testcontainers.Container
 	loadBalander testcontainers.Container
+
+	shutdowns []func()
+}
+
+func (d*DemoContainers) Shutdown() {
+	for _, f := range d.shutdowns {
+		f()
+	}
 }
 
 func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePath, imageName string) error {
@@ -73,6 +84,44 @@ func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePa
 	return nil
 }
 
+type containerStartOption func(*testcontainers.ContainerRequest)
+
+func Port(port string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		r.ExposedPorts = append(r.ExposedPorts, port)
+	}
+}
+
+func Cmd(cmd string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		r.Cmd = append(r.Cmd, cmd)
+	}
+}
+
+func Net(name string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		r.Networks = append(r.Networks, name)
+	}
+}
+
+func startContainer(ctx context.Context, client *testcontainers.DockerClient, imageName string, opts ...containerStartOption) (testcontainers.Container, error) {
+	req := testcontainers.ContainerRequest{
+		Image:        imageName,
+	}
+	for _, o := range opts {
+		o(&req)
+	}
+	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	client, err := testcontainers.NewDockerClientWithOpts(ctx)
 	if err != nil {
@@ -84,39 +133,63 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		return nil, err
 	}
 
-	req := testcontainers.ContainerRequest{
-		Image:        "hiserver:latest",
-		ExposedPorts: []string{"8000/tcp"},
-	}
-	hiserver, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
-	// TODO: hiserver.TerminateContainer
-
-	info, err := hiserver.Inspect(ctx)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("container info: %s\n", info.Config.Image)
-	endpoint, err := hiserver.PortEndpoint(ctx, "8000", "http")
+	err = loadImage(ctx, client, "cmd/lb/image", "lb")
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("endpoint %s\n", endpoint)
+	d := &DemoContainers{}
 
-	fmt.Scanln()
+	network, err := network.New(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d.shutdowns = append(d.shutdowns,  func() { network.Remove(context.Background()) })
 
-	return nil, nil
+	var backendEndpoints []string
+
+	for i := range d.backends {
+		c, err := startContainer(ctx, client, "hiserver", Port("8000"), Net(network.Name))
+		if err != nil {
+			return nil, err
+		}
+		d.backends[i] = c
+		d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(c) })
+
+		ep, err := c.PortEndpoint(ctx, "8000", "http")
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Started hiserver on %s\n", ep)
+		ip, err := c.ContainerIP(ctx)
+		if err != nil {
+			return nil, err
+		}
+		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip)
+	}
+
+	lb, err := startContainer(ctx, client, "lb", Port("9001"), Net(network.Name), Cmd("--backends"), Cmd(strings.Join(backendEndpoints,  ",")))
+	if err != nil {
+		return nil, err
+	}
+	d.loadBalander = lb
+	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(lb) })
+
+	ep, err := lb.PortEndpoint(ctx, "9001", "http")
+	if err != nil { return nil, err }
+	fmt.Printf("Started lb on %s\n", ep)
+
+	return d, nil
 }
 
 func main() {
-	_, err := SetupContainers(context.Background())
+	d, err := SetupContainers(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	defer d.Shutdown()
+
+	fmt.Scanln()
 }
+
