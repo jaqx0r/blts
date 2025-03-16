@@ -1,0 +1,5 @@
+filegroup(
+    name = "configs",
+    srcs = glob(["**/*"]),
+    visibility = ["//cmd/demo:__pkg__"],
+)

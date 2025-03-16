@@ -2,10 +2,15 @@ load("@rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_library(
     name = "demo_lib",
-    srcs = ["demo.go"],
+    srcs = [
+        "demo.go",
+        "open.go",
+    ],
     data = [
         "//cmd/lb:image",
         "//cmd/s:image",
+        "//graf:configs",
+        "//prom:configs",
     ],
     importpath = "github.com/jaqx0r/blts/cmd/demo",
     visibility = ["//visibility:private"],
@@ -15,6 +20,7 @@ go_library(
         "@com_github_google_go_containerregistry//pkg/v1/tarball",
         "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
         "@com_github_testcontainers_testcontainers_go//network",
+        "@com_github_testcontainers_testcontainers_go//wait",
         "@rules_go//go/runfiles",
     ],
 )

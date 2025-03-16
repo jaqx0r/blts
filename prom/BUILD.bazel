@@ -1,0 +1,8 @@
+filegroup(
+    name = "configs",
+    srcs = glob([
+        "*.yml",
+        "*.rules",
+    ]),
+    visibility = ["//cmd/demo:__pkg__"],
+)

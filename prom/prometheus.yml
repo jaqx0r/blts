@@ -22,10 +22,10 @@ global:
 scrape_configs:
   - job_name: 's'
     static_configs:
-      - targets: ['servers:8000','servers:8001','servers:8002','servers:8003','servers:8004','servers:8005','servers:8006','servers:8007','servers:8008','servers:8009']
+      - targets: ['server0:8000','server1:8000','server2:8000','server3:8000','server4:8000','server5:8000','server6:8000','server7:8000','server8:8000','server9:8000']
   - job_name: 'lb'
     static_configs:
-      - targets: ['servers:9001']
+      - targets: ['lb:9001']
 
 rule_files:
   - 'task.rules'

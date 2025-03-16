@@ -1,30 +1,33 @@
 package main
 
 import (
-	"strings"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"path/filepath"
-	"io"
+	"strings"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/layout"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/testcontainers/testcontainers-go"
-	 "github.com/testcontainers/testcontainers-go/network"
-
+	"github.com/testcontainers/testcontainers-go/network"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type DemoContainers struct {
 	backends     [10]testcontainers.Container
 	loadBalander testcontainers.Container
+	prom         testcontainers.Container
+	graf         testcontainers.Container
+	am           testcontainers.Container
 
 	shutdowns []func()
 }
 
-func (d*DemoContainers) Shutdown() {
+func (d *DemoContainers) Shutdown() {
 	for _, f := range d.shutdowns {
 		f()
 	}
@@ -104,9 +107,39 @@ func Net(name string) containerStartOption {
 	}
 }
 
+func Wait(w wait.Strategy) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		r.WaitingFor = w
+	}
+}
+
+func Dir(source, target string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		r.Mounts = append(r.Mounts, testcontainers.BindMount(source, testcontainers.ContainerMountTarget(target)))
+	}
+}
+
+func Env(key, value string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		if r.Env == nil {
+			r.Env = make(map[string]string)
+		}
+		r.Env[key] = value
+	}
+}
+
+func Alias(network, name string) containerStartOption {
+	return func(r *testcontainers.ContainerRequest) {
+		if r.NetworkAliases == nil {
+			r.NetworkAliases = make(map[string][]string)
+		}
+		r.NetworkAliases[network] = append(r.NetworkAliases[network], name)
+	}
+}
+
 func startContainer(ctx context.Context, client *testcontainers.DockerClient, imageName string, opts ...containerStartOption) (testcontainers.Container, error) {
 	req := testcontainers.ContainerRequest{
-		Image:        imageName,
+		Image: imageName,
 	}
 	for _, o := range opts {
 		o(&req)
@@ -144,12 +177,12 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.shutdowns = append(d.shutdowns,  func() { network.Remove(context.Background()) })
+	d.shutdowns = append(d.shutdowns, func() { network.Remove(context.Background()) })
 
 	var backendEndpoints []string
 
 	for i := range d.backends {
-		c, err := startContainer(ctx, client, "hiserver", Port("8000"), Net(network.Name))
+		c, err := startContainer(ctx, client, "hiserver", Port("8000"), Net(network.Name), Alias(network.Name, fmt.Sprintf("server%d", i)))
 		if err != nil {
 			return nil, err
 		}
@@ -158,17 +191,17 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 
 		ep, err := c.PortEndpoint(ctx, "8000", "http")
 		if err != nil {
-			return err
+			return nil, err
 		}
 		fmt.Printf("Started hiserver on %s\n", ep)
 		ip, err := c.ContainerIP(ctx)
 		if err != nil {
 			return nil, err
 		}
-		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip)
+		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip))
 	}
 
-	lb, err := startContainer(ctx, client, "lb", Port("9001"), Net(network.Name), Cmd("--backends"), Cmd(strings.Join(backendEndpoints,  ",")))
+	lb, err := startContainer(ctx, client, "lb", Port("9001"), Net(network.Name), Cmd("--backends"), Cmd(strings.Join(backendEndpoints, ",")), Alias(network.Name, "lb"))
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +209,50 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(lb) })
 
 	ep, err := lb.PortEndpoint(ctx, "9001", "http")
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	fmt.Printf("Started lb on %s\n", ep)
+
+	promconfig, err := runfiles.Rlocation("blts/prom/prometheus.yml")
+	if err != nil {
+		return nil, err
+	}
+
+	prom, err := startContainer(ctx, client, "docker.io/prom/prometheus", Net(network.Name), Port("9090"), Dir(filepath.Dir(promconfig), "/etc/prometheus"), Alias(network.Name, "prometheus"))
+	if err != nil {
+		return nil, err
+	}
+
+	d.prom = prom
+	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(prom) })
+
+	pep, err := prom.PortEndpoint(ctx, "9090", "http")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Started prom on %s\n", pep)
+
+	grafconfig, err := runfiles.Rlocation("blts/graf/grafana.ini")
+	if err != nil {
+		return nil, err
+	}
+
+	graf, err := startContainer(ctx, client, "docker.io/grafana/grafana", Net(network.Name), Port("3000"), Dir(filepath.Dir(grafconfig), "/etc/grafana"), Wait(wait.ForHTTP("/")))
+	if err != nil {
+		return nil, err
+	}
+	d.graf = graf
+	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(graf) })
+	graf.Exec(ctx, []string{"ls", "-al", "/etc/grafana"})
+	graf.Exec(ctx, []string{"cat", "/etc/grafana/grafana.ini"})
+
+	gep, err := graf.PortEndpoint(ctx, "3000", "http")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Started graf on %s, opening in browser\n", gep)
+	openURL(gep)
 
 	return d, nil
 }
@@ -192,4 +267,3 @@ func main() {
 
 	fmt.Scanln()
 }
-
