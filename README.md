@@ -42,7 +42,11 @@ generator drives them past their capable limits.
 used in this example.  [Zipkin](http://zipkin.io) is used for capturing traces
 if you choose to add it.
 
-The demo uses Podman Compose to start up the environment.  You'll get a Grafana with the SLO Dashboard, a Prometheus, a Servers image containing the fake cluster and load balancer, and a Zipkin.
+The demo relies on Bazel to build and run the demo.  You also need a Docker or Podman set up and visible through the DOCKER_HOST environment variable.
+
+`bazel run //cmd/demo` builds all the components and starts the demo.
+
+You'll get a bunch of containers including Grafana with the SLO Dashboard, a Prometheus, a bunch of backend Servers running fake cluster and a load balancer.
 
 `./load.sh` requires `ab` (ApacheBench) from the Apache webserver tools (`apache2-utils`).  `./load-nice.sh` is the non-antagonistic version.
 

@@ -22,7 +22,6 @@ type DemoContainers struct {
 	loadBalander testcontainers.Container
 	prom         testcontainers.Container
 	graf         testcontainers.Container
-	am           testcontainers.Container
 
 	shutdowns []func()
 }
