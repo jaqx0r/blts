@@ -21,6 +21,7 @@ go_library(
         "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
         "@com_github_testcontainers_testcontainers_go//network",
         "@com_github_testcontainers_testcontainers_go//wait",
+        "@com_github_tsenart_vegeta//lib:go_default_library",
         "@rules_go//go/runfiles",
     ],
 )

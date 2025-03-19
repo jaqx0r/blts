@@ -7,6 +7,7 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -15,6 +16,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
+	vegeta "github.com/tsenart/vegeta/lib"
 )
 
 type DemoContainers struct {
@@ -262,7 +264,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	defer d.Shutdown()
-
+	fmt.Println("press enter to start nice load")
 	fmt.Scanln()
+
+	lbep, err := d.loadBalander.PortEndpoint(context.Background(), "9001", "http")
+	if err != nil {
+		log.Fatal(err)
+	}
+	target := vegeta.Target{
+		Method: "GET",
+		URL:    lbep,
+	}
+	tr := vegeta.NewStaticTargeter(target)
+	a := vegeta.NewAttacker()
+
+	r := a.Attack(tr, vegeta.ConstantPacer{Freq: 100, Per: time.Second}, time.Minute, "nice")
+	for range r {
+		fmt.Printf("r %v\n", r)
+	}
+
+	fmt.Println("done, press enter again")
+	fmt.Scanln()
+
+	d.Shutdown()
 }

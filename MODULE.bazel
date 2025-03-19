@@ -22,6 +22,7 @@ use_repo(
     "com_github_openzipkin_zipkin_go",
     "com_github_prometheus_client_golang",
     "com_github_testcontainers_testcontainers_go",
+    "com_github_tsenart_vegeta",
     "io_opencensus_go",
     "io_opencensus_go_contrib_exporter_prometheus",
     "io_opencensus_go_contrib_exporter_zipkin",
