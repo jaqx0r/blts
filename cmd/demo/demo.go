@@ -17,6 +17,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 	vegeta "github.com/tsenart/vegeta/lib"
+	dockerclient "github.com/docker/docker/client"
 )
 
 type DemoContainers struct {
@@ -72,8 +73,7 @@ func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePa
 			pw.CloseWithError(tarball.Write(ref, img, pw))
 		}()
 
-		notQuiet := false
-		resp, err := client.ImageLoad(ctx, pr, notQuiet)
+		resp, err := client.ImageLoad(ctx, pr, dockerclient.ImageLoadWithQuiet(false))
 		if err != nil {
 			return err
 		}

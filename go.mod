@@ -8,6 +8,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	contrib.go.opencensus.io/exporter/zipkin v0.1.2
 	github.com/bazelbuild/rules_go v0.53.0
+	github.com/docker/docker v28.0.1+incompatible
 	github.com/google/go-containerregistry v0.20.3
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/prometheus/client_golang v1.21.1
@@ -32,7 +33,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-gk v0.0.0-20200319235926-a69029f61654 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.0.1+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
@@ -68,9 +68,7 @@ require (
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/prometheus/statsd_exporter v0.22.7 // indirect
-	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/streadway/quantile v0.0.0-20220407130108-4246515d968d // indirect
 	github.com/stretchr/testify v1.10.0 // indirect

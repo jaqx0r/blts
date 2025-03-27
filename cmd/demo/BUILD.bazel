@@ -15,13 +15,14 @@ go_library(
     importpath = "github.com/jaqx0r/blts/cmd/demo",
     visibility = ["//visibility:private"],
     deps = [
+        "@com_github_docker_docker//client",
         "@com_github_google_go_containerregistry//pkg/name",
         "@com_github_google_go_containerregistry//pkg/v1/layout",
         "@com_github_google_go_containerregistry//pkg/v1/tarball",
         "@com_github_testcontainers_testcontainers_go//:testcontainers-go",
         "@com_github_testcontainers_testcontainers_go//network",
         "@com_github_testcontainers_testcontainers_go//wait",
-        "@com_github_tsenart_vegeta//lib:go_default_library",
+        "@com_github_tsenart_vegeta//lib",
         "@rules_go//go/runfiles",
     ],
 )
