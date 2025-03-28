@@ -19,6 +19,8 @@ jobs:
       pull-requests: write
       # and writes to the checks API
       checks: write
+      # actions/cache needs to write to the actions API
+      actions: write
     steps:
       - uses: actions/checkout@v4
       - uses: bazel-contrib/setup-bazel@0.14.0
