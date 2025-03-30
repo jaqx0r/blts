@@ -33,8 +33,12 @@ jobs:
         run: bazel build //...
       - name: bazel test
         run: bazel coverage --test_output=all --combined_report=lcov --instrument_test_targets --nocache_test_results --instrumentation_filter="^//" //...
-      - uses: EnricoMi/publish-unit-test-result-action@v2
+      - name: output bazel paths for test reporting
+        if: always()
+        id: bazel_info
+        run: |
+          bazel info bazel-testlogs | sed -e 's/: /=/' >> $GITHUB_OUTPUT
+      - uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: always()
         with:
-          files: |
-            $(bazel info bazel-testlogs)/**/test.xml
+          files: ${{ steps.bazel_info.outputs.bazel-testlogs }}/**/test.xml
