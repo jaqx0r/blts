@@ -37,7 +37,7 @@ jobs:
         if: always()
         id: bazel_info
         run: |
-          bazel info bazel-testlogs | sed -e 's/: /=/' >> $GITHUB_OUTPUT
+          bazel info bazel-testlogs output_path | sed -e 's/: /=/' >> $GITHUB_OUTPUT
       - uses: EnricoMi/publish-unit-test-result-action/linux@v2
         if: always()
         with:
