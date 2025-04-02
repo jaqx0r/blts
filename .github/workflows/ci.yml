@@ -33,7 +33,7 @@ jobs:
         run: bazel build //...
       - name: bazel test
         run: bazel coverage --test_output=all --combined_report=lcov --instrument_test_targets --nocache_test_results --instrumentation_filter="^//" //...
-      - name: output bazel paths for test reporting
+      - name: output bazel paths for test and coverage
         if: always()
         id: bazel_info
         run: |
