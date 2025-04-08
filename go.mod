@@ -11,7 +11,7 @@ require (
 	github.com/docker/docker v28.0.4+incompatible
 	github.com/google/go-containerregistry v0.20.3
 	github.com/openzipkin/zipkin-go v0.4.3
-	github.com/prometheus/client_golang v1.21.1
+	github.com/prometheus/client_golang v1.22.0
 	github.com/testcontainers/testcontainers-go v0.36.0
 	github.com/tsenart/vegeta v12.7.0+incompatible
 	go.opencensus.io v0.24.0
@@ -47,7 +47,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/influxdata/tdigest v0.0.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
