@@ -4,7 +4,7 @@ bazel_dep(name = "rules_go", version = "0.54.0")
 bazel_dep(name = "gazelle", version = "0.43.0")
 
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
-go_sdk.download(version = "1.23.1")
+go_sdk.from_file(go_mod = "//:go.mod")
 
 # https://github.com/bazel-contrib/rules_go/blob/master/go/nogo.rst
 # Like golangci-lint, but integrated into the build.
