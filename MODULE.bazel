@@ -32,7 +32,7 @@ use_repo(
 # `rules_oci` and `aspect_bazel_lib`'s `tar` for making container images.
 bazel_dep(name = "aspect_bazel_lib", version = "2.16.0")
 bazel_dep(name = "rules_oci", version = "2.2.6")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "platforms", version = "1.0.0")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 oci.pull(
