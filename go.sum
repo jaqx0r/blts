@@ -61,6 +61,8 @@ github.com/bazelbuild/rules_go v0.55.0 h1:S8X/b/Oygw/Dtv7NuyW7ht0QwdynMEdXQqYigX
 github.com/bazelbuild/rules_go v0.55.0/go.mod h1:T90Gpyq4HDFlsrvtQa2CBdHNJ2P4rAu/uUTmQbanzf0=
 github.com/bazelbuild/rules_go v0.55.1 h1:cQYGcunY8myOB+0Ym6PGQRhc/milkRcNv0my3XgxaDU=
 github.com/bazelbuild/rules_go v0.55.1/go.mod h1:T90Gpyq4HDFlsrvtQa2CBdHNJ2P4rAu/uUTmQbanzf0=
+github.com/bazelbuild/rules_go v0.56.0 h1:Ow/oLK5NRhaooY2M2f1+fBiFlGPzmvA4TSaEHisL/RQ=
+github.com/bazelbuild/rules_go v0.56.0/go.mod h1:T90Gpyq4HDFlsrvtQa2CBdHNJ2P4rAu/uUTmQbanzf0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
