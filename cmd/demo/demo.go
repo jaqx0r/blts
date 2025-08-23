@@ -15,6 +15,9 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
+const prometheusImageName = "docker.io/prom/prometheus"
+const grafanaImageName = "docker.io/grafana/grafana"
+
 type DemoContainers struct {
 	backends     [10]testcontainers.Container
 	loadBalander testcontainers.Container
@@ -28,74 +31,6 @@ func (d *DemoContainers) Shutdown() {
 	for _, f := range d.shutdowns {
 		f()
 	}
-}
-
-type containerStartOption func(*testcontainers.ContainerRequest)
-
-func Port(port string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		r.ExposedPorts = append(r.ExposedPorts, port)
-	}
-}
-
-func Cmd(cmd string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		r.Cmd = append(r.Cmd, cmd)
-	}
-}
-
-func Net(name string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		r.Networks = append(r.Networks, name)
-	}
-}
-
-func Wait(w wait.Strategy) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		r.WaitingFor = w
-	}
-}
-
-func Dir(source, target string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		r.Mounts = append(r.Mounts, testcontainers.BindMount(source, testcontainers.ContainerMountTarget(target)))
-	}
-}
-
-func Env(key, value string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		if r.Env == nil {
-			r.Env = make(map[string]string)
-		}
-		r.Env[key] = value
-	}
-}
-
-func Alias(network, name string) containerStartOption {
-	return func(r *testcontainers.ContainerRequest) {
-		if r.NetworkAliases == nil {
-			r.NetworkAliases = make(map[string][]string)
-		}
-		r.NetworkAliases[network] = append(r.NetworkAliases[network], name)
-	}
-}
-
-func startContainer(ctx context.Context, client *testcontainers.DockerClient, imageName string, opts ...containerStartOption) (testcontainers.Container, error) {
-	req := testcontainers.ContainerRequest{
-		Image: imageName,
-	}
-	for _, o := range opts {
-		o(&req)
-	}
-	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }
 
 func SetupContainers(ctx context.Context) (*DemoContainers, error) {
@@ -116,16 +51,19 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 
 	d := &DemoContainers{}
 
-	network, err := network.New(ctx)
+	demoNetwork, err := network.New(ctx)
 	if err != nil {
 		return nil, err
 	}
-	d.shutdowns = append(d.shutdowns, func() { network.Remove(context.Background()) })
+	d.shutdowns = append(d.shutdowns, func() { demoNetwork.Remove(context.Background()) })
 
 	var backendEndpoints []string
 
 	for i := range d.backends {
-		c, err := startContainer(ctx, client, "hiserver", Port("8000"), Net(network.Name), Alias(network.Name, fmt.Sprintf("server%d", i)))
+		c, err := testcontainers.Run(ctx, "hiserver",
+			testcontainers.WithExposedPorts("8000/tcp"),
+			network.WithNetwork([]string{fmt.Sprintf("server%d", i)}, demoNetwork),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +82,11 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip))
 	}
 
-	lb, err := startContainer(ctx, client, "lb", Port("9001"), Net(network.Name), Cmd("--backends"), Cmd(strings.Join(backendEndpoints, ",")), Alias(network.Name, "lb"))
+	lb, err := testcontainers.Run(ctx, "lb",
+		testcontainers.WithExposedPorts("9001/tcp"),
+		network.WithNetwork([]string{"lb"}, demoNetwork),
+		testcontainers.WithCmdArgs("--backends", strings.Join(backendEndpoints, ",")),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +104,16 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		return nil, err
 	}
 
-	prom, err := startContainer(ctx, client, "docker.io/prom/prometheus", Net(network.Name), Port("9090"), Dir(filepath.Dir(promconfig), "/etc/prometheus"), Alias(network.Name, "prometheus"))
+	prom, err := testcontainers.Run(ctx, prometheusImageName,
+		network.WithNetwork([]string{"prometheus"}, demoNetwork),
+		testcontainers.WithExposedPorts("9090/tcp"),
+		testcontainers.WithMounts(
+			testcontainers.BindMount(
+				filepath.Dir(promconfig),
+				testcontainers.ContainerMountTarget("/etc/prometheus"),
+			),
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +132,17 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		return nil, err
 	}
 
-	graf, err := startContainer(ctx, client, "docker.io/grafana/grafana", Net(network.Name), Port("3000"), Dir(filepath.Dir(grafconfig), "/etc/grafana"), Wait(wait.ForHTTP("/")))
+	graf, err := testcontainers.Run(ctx, grafanaImageName,
+		testcontainers.WithExposedPorts("3000/tcp"),
+		network.WithNetwork([]string{"graf"}, demoNetwork),
+		testcontainers.WithMounts(
+			testcontainers.BindMount(
+			filepath.Dir(grafconfig),
+				testcontainers.ContainerMountTarget("/etc/grafana"),
+			),
+		),
+		testcontainers.WithWaitStrategy(wait.ForHTTP("/")),
+	)
 	if err != nil {
 		return nil, err
 	}
