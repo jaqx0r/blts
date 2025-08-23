@@ -3,21 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
-	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/google/go-containerregistry/pkg/v1/layout"
-	"github.com/google/go-containerregistry/pkg/v1/tarball"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 	vegeta "github.com/tsenart/vegeta/lib"
-	dockerclient "github.com/docker/docker/client"
 )
 
 type DemoContainers struct {
@@ -33,59 +28,6 @@ func (d *DemoContainers) Shutdown() {
 	for _, f := range d.shutdowns {
 		f()
 	}
-}
-
-func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePath, imageName string) error {
-	fullPath, err := runfiles.Rlocation(filepath.Join("blts", imagePath))
-	if err != nil {
-		return nil
-	}
-
-	path, err := layout.FromPath(fullPath)
-	if err != nil {
-		return err
-	}
-
-	index, err := path.ImageIndex()
-	if err != nil {
-		return err
-	}
-
-	manifest, err := index.IndexManifest()
-	if err != nil {
-		return err
-	}
-
-	for _, manifestDescriptor := range manifest.Manifests {
-		hash := manifestDescriptor.Digest
-
-		img, err := path.Image(hash)
-		if err != nil {
-			return err
-		}
-
-		ref, err := name.ParseReference(imageName)
-		if err != nil {
-			return err
-		}
-		pr, pw := io.Pipe()
-		go func() {
-			pw.CloseWithError(tarball.Write(ref, img, pw))
-		}()
-
-		resp, err := client.ImageLoad(ctx, pr, dockerclient.ImageLoadWithQuiet(false))
-		if err != nil {
-			return err
-		}
-
-		_, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-
-		resp.Body.Close()
-	}
-	return nil
 }
 
 type containerStartOption func(*testcontainers.ContainerRequest)

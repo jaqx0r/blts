@@ -4,6 +4,7 @@ go_library(
     name = "demo_lib",
     srcs = [
         "demo.go",
+        "image.go",
         "open.go",
     ],
     data = [
