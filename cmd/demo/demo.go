@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
@@ -37,14 +41,17 @@ func (c logConsumer) Accept(l testcontainers.Log) {
 	log.Printf("%s: %s: %s", c.name, l.LogType, l.Content)
 }
 
-func stopContainerOnDone(ctx context.Context, c testcontainers.Container) {
+func stopContainerOnDone(ctx context.Context, wg *sync.WaitGroup, c testcontainers.Container) {
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		<-ctx.Done()
+		fmt.Println("Stopping container ", c.GetContainerID())
 		testcontainers.TerminateContainer(c)
 	}()
 }
 
-func SetupContainer(ctx context.Context, name, imageName string, nw *testcontainers.DockerNetwork, port string, opts ...testcontainers.ContainerCustomizer) (testcontainers.Container, error) {
+func SetupContainer(ctx context.Context, wg *sync.WaitGroup, name, imageName string, nw *testcontainers.DockerNetwork, port string, opts ...testcontainers.ContainerCustomizer) (testcontainers.Container, error) {
 	//l := logConsumer{name: name}
 	opts = append(opts,
 		testcontainers.WithExposedPorts(port),
@@ -56,11 +63,11 @@ func SetupContainer(ctx context.Context, name, imageName string, nw *testcontain
 		return nil, fmt.Errorf("testcontainers.Run(%v): %w", name, err)
 	}
 
-	stopContainerOnDone(ctx, c)
+	stopContainerOnDone(ctx, wg, c)
 	return c, nil
 }
 
-func SetupContainers(ctx context.Context) (*DemoContainers, error) {
+func SetupContainers(ctx context.Context, wg *sync.WaitGroup) (*DemoContainers, error) {
 	client, err := testcontainers.NewDockerClientWithOpts(ctx)
 	if err != nil {
 		return nil, err
@@ -92,8 +99,11 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	if err != nil {
 		return nil, err
 	}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		<-ctx.Done()
+		fmt.Println("Stopping network")
 		demoNetwork.Remove(context.Background())
 	}()
 
@@ -101,7 +111,7 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 
 	for i := range d.backends {
 		name := fmt.Sprintf("server%d", i)
-		c, err := SetupContainer(ctx, name, "hiserver", demoNetwork, "8000/tcp")
+		c, err := SetupContainer(ctx, wg, name, "hiserver", demoNetwork, "8000/tcp")
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +129,7 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip))
 	}
 
-	lb, err := SetupContainer(ctx, "lb", "lb", demoNetwork, "9001/tcp", testcontainers.WithCmdArgs("--backends", strings.Join(backendEndpoints, ",")))
+	lb, err := SetupContainer(ctx, wg, "lb", "lb", demoNetwork, "9001/tcp", testcontainers.WithCmdArgs("--backends", strings.Join(backendEndpoints, ",")))
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +164,7 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 				FileMode:          0o644,
 			})
 	}
-	prom, err := SetupContainer(ctx, "prom", "prom", demoNetwork, "9090/tcp",
+	prom, err := SetupContainer(ctx, wg, "prom", "prom", demoNetwork, "9090/tcp",
 		testcontainers.WithFiles(containerFiles...),
 		testcontainers.WithWaitStrategy(wait.ForHTTP("/")),
 	)
@@ -193,7 +203,7 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		})
 	}
 
-	graf, err := SetupContainer(ctx, "graf", "graf", demoNetwork, "3000/tcp",
+	graf, err := SetupContainer(ctx, wg, "graf", "graf", demoNetwork, "3000/tcp",
 		testcontainers.WithFiles(containerFiles...),
 		testcontainers.WithWaitStrategy(wait.ForHTTP("/")),
 	)
@@ -215,10 +225,10 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	wg := &sync.WaitGroup{}
 
-	d, err := SetupContainers(ctx)
+	d, err := SetupContainers(ctx, wg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -243,4 +253,6 @@ func main() {
 
 	fmt.Println("done, press enter again")
 	fmt.Scanln()
+	stop()
+	wg.Wait()
 }
