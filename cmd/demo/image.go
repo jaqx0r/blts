@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"io"
-	"path/filepath"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
 	dockerclient "github.com/docker/docker/client"
@@ -14,7 +13,7 @@ import (
 )
 
 func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePath, imageName string) error {
-	fullPath, err := runfiles.Rlocation(filepath.Join("blts", imagePath))
+	fullPath, err := runfiles.Rlocation(imagePath)
 	if err != nil {
 		return nil
 	}

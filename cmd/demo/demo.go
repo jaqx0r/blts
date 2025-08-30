@@ -15,22 +15,49 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-const prometheusImageName = "docker.io/prom/prometheus"
-const grafanaImageName = "docker.io/grafana/grafana"
+var sImagePath string
+var lbImagePath string
+var promImagePath string
+var grafImagePath string
+var promConfigPaths string
+var grafConfigPaths string
 
 type DemoContainers struct {
 	backends     [10]testcontainers.Container
 	loadBalander testcontainers.Container
 	prom         testcontainers.Container
 	graf         testcontainers.Container
-
-	shutdowns []func()
 }
 
-func (d *DemoContainers) Shutdown() {
-	for _, f := range d.shutdowns {
-		f()
+type logConsumer struct {
+	name string
+}
+
+func (c logConsumer) Accept(l testcontainers.Log) {
+	log.Printf("%s: %s: %s", c.name, l.LogType, l.Content)
+}
+
+func stopContainerOnDone(ctx context.Context, c testcontainers.Container) {
+	go func() {
+		<-ctx.Done()
+		testcontainers.TerminateContainer(c)
+	}()
+}
+
+func SetupContainer(ctx context.Context, name, imageName string, nw *testcontainers.DockerNetwork, port string, opts ...testcontainers.ContainerCustomizer) (testcontainers.Container, error) {
+	//l := logConsumer{name: name}
+	opts = append(opts,
+		testcontainers.WithExposedPorts(port),
+		network.WithNetwork([]string{name}, nw),
+		//	testcontainers.WithLogConsumers(l),
+	)
+	c, err := testcontainers.Run(ctx, imageName, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("testcontainers.Run(%v): %w", name, err)
 	}
+
+	stopContainerOnDone(ctx, c)
+	return c, nil
 }
 
 func SetupContainers(ctx context.Context) (*DemoContainers, error) {
@@ -39,12 +66,22 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		return nil, err
 	}
 
-	err = loadImage(ctx, client, "cmd/s/image", "hiserver")
+	err = loadImage(ctx, client, sImagePath, "hiserver")
+	if err != nil {
+		return nil, fmt.Errorf("loadImage(%v): %w", sImagePath, err)
+	}
+
+	err = loadImage(ctx, client, lbImagePath, "lb")
 	if err != nil {
 		return nil, err
 	}
 
-	err = loadImage(ctx, client, "cmd/lb/image", "lb")
+	err = loadImage(ctx, client, promImagePath, "prom")
+	if err != nil {
+		return nil, err
+	}
+
+	err = loadImage(ctx, client, grafImagePath, "graf")
 	if err != nil {
 		return nil, err
 	}
@@ -55,20 +92,20 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	if err != nil {
 		return nil, err
 	}
-	d.shutdowns = append(d.shutdowns, func() { demoNetwork.Remove(context.Background()) })
+	go func() {
+		<-ctx.Done()
+		demoNetwork.Remove(context.Background())
+	}()
 
 	var backendEndpoints []string
 
 	for i := range d.backends {
-		c, err := testcontainers.Run(ctx, "hiserver",
-			testcontainers.WithExposedPorts("8000/tcp"),
-			network.WithNetwork([]string{fmt.Sprintf("server%d", i)}, demoNetwork),
-		)
+		name := fmt.Sprintf("server%d", i)
+		c, err := SetupContainer(ctx, name, "hiserver", demoNetwork, "8000/tcp")
 		if err != nil {
 			return nil, err
 		}
 		d.backends[i] = c
-		d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(c) })
 
 		ep, err := c.PortEndpoint(ctx, "8000", "http")
 		if err != nil {
@@ -82,16 +119,11 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 		backendEndpoints = append(backendEndpoints, fmt.Sprintf("%s:8000", ip))
 	}
 
-	lb, err := testcontainers.Run(ctx, "lb",
-		testcontainers.WithExposedPorts("9001/tcp"),
-		network.WithNetwork([]string{"lb"}, demoNetwork),
-		testcontainers.WithCmdArgs("--backends", strings.Join(backendEndpoints, ",")),
-	)
+	lb, err := SetupContainer(ctx, "lb", "lb", demoNetwork, "9001/tcp", testcontainers.WithCmdArgs("--backends", strings.Join(backendEndpoints, ",")))
 	if err != nil {
 		return nil, err
 	}
 	d.loadBalander = lb
-	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(lb) })
 
 	ep, err := lb.PortEndpoint(ctx, "9001", "http")
 	if err != nil {
@@ -99,27 +131,38 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	}
 	fmt.Printf("Started lb on %s\n", ep)
 
-	promconfig, err := runfiles.Rlocation("blts/prom/prometheus.yml")
+	promloc, err := runfiles.Rlocation("_main/prom/prometheus.yml")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("runfiles.Rlocation(): %w", err)
 	}
-
-	prom, err := testcontainers.Run(ctx, prometheusImageName,
-		network.WithNetwork([]string{"prometheus"}, demoNetwork),
-		testcontainers.WithExposedPorts("9090/tcp"),
-		testcontainers.WithMounts(
-			testcontainers.BindMount(
-				filepath.Dir(promconfig),
-				testcontainers.ContainerMountTarget("/etc/prometheus"),
-			),
-		),
+	root := filepath.Dir(promloc)
+	var containerFiles []testcontainers.ContainerFile
+	for _, path := range strings.Split(promConfigPaths, " ") {
+		config, err := runfiles.Rlocation(path)
+		if err != nil {
+			return nil, fmt.Errorf("runfiles.Rlocation(%v): %w", path, err)
+		}
+		rel, err := filepath.Rel(root, config)
+		if err != nil {
+			return nil, fmt.Errorf("filepath.Rel(%v, %v): %w", root, config, err)
+		}
+		containerFilePath := filepath.Join("/etc/prometheus", rel)
+		containerFiles = append(containerFiles,
+			testcontainers.ContainerFile{
+				HostFilePath:      config,
+				ContainerFilePath: containerFilePath,
+				FileMode:          0o644,
+			})
+	}
+	prom, err := SetupContainer(ctx, "prom", "prom", demoNetwork, "9090/tcp",
+		testcontainers.WithFiles(containerFiles...),
+		testcontainers.WithWaitStrategy(wait.ForHTTP("/")),
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	d.prom = prom
-	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(prom) })
 
 	pep, err := prom.PortEndpoint(ctx, "9090", "http")
 	if err != nil {
@@ -127,27 +170,37 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 	}
 	fmt.Printf("Started prom on %s\n", pep)
 
-	grafconfig, err := runfiles.Rlocation("blts/graf/grafana.ini")
+	grafloc, err := runfiles.Rlocation("blts/graf/grafana.ini")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("runfiles.Rlocation(): %w", err)
+	}
+	root = filepath.Dir(grafloc)
+	for _, path := range strings.Split(grafConfigPaths, " ") {
+		config, err := runfiles.Rlocation(path)
+		if err != nil {
+			return nil, fmt.Errorf("runfiles.Rlocation(%v): %w", path, err)
+		}
+		rel, err := filepath.Rel(root, config)
+		if err != nil {
+			return nil, fmt.Errorf("filepath.Rel(%v, %v): %w", root, config, err)
+		}
+		containerFilePath := filepath.Join("/etc/grafana", rel)
+
+		containerFiles = append(containerFiles, testcontainers.ContainerFile{
+			HostFilePath:      config,
+			ContainerFilePath: containerFilePath,
+			FileMode:          0o644,
+		})
 	}
 
-	graf, err := testcontainers.Run(ctx, grafanaImageName,
-		testcontainers.WithExposedPorts("3000/tcp"),
-		network.WithNetwork([]string{"graf"}, demoNetwork),
-		testcontainers.WithMounts(
-			testcontainers.BindMount(
-			filepath.Dir(grafconfig),
-				testcontainers.ContainerMountTarget("/etc/grafana"),
-			),
-		),
+	graf, err := SetupContainer(ctx, "graf", "graf", demoNetwork, "3000/tcp",
+		testcontainers.WithFiles(containerFiles...),
 		testcontainers.WithWaitStrategy(wait.ForHTTP("/")),
 	)
 	if err != nil {
 		return nil, err
 	}
 	d.graf = graf
-	d.shutdowns = append(d.shutdowns, func() { testcontainers.TerminateContainer(graf) })
 	graf.Exec(ctx, []string{"ls", "-al", "/etc/grafana"})
 	graf.Exec(ctx, []string{"cat", "/etc/grafana/grafana.ini"})
 
@@ -183,11 +236,8 @@ func main() {
 
 	r := a.Attack(tr, vegeta.ConstantPacer{Freq: 100, Per: time.Second}, time.Minute, "nice")
 	for range r {
-		fmt.Printf("r %v\n", r)
 	}
 
 	fmt.Println("done, press enter again")
 	fmt.Scanln()
-
-	d.Shutdown()
 }

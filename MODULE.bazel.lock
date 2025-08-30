@@ -251,7 +251,7 @@
     "@@rules_oci+//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "MObYeJgeRukG0C/KOeHNd02huv38P3KnpPsNX1OgrI4=",
-        "usagesDigest": "0LasvmKRCjA575oYOzmKzGrrJn7AHveR4hQntWPf7B0=",
+        "usagesDigest": "3ypCYM7h4NEgElo4FFz74cnQ+vTP11nG55vRHFlG+XU=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -296,6 +296,92 @@
                 "@@platforms//cpu:arm64": "@distroless_base_linux_arm64_v8"
               },
               "bzlmod_repository": "distroless_base",
+              "reproducible": true
+            }
+          },
+          "prometheus_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "prom/prometheus",
+              "identifier": "sha256:3b1d5be5c3eef4f027665ddaa3b1a7de8a58d96a0a6de5dd45629afd267ecaf0",
+              "platform": "linux/amd64",
+              "target_name": "prometheus_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "prometheus_linux_arm64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "prom/prometheus",
+              "identifier": "sha256:3b1d5be5c3eef4f027665ddaa3b1a7de8a58d96a0a6de5dd45629afd267ecaf0",
+              "platform": "linux/arm64",
+              "target_name": "prometheus_linux_arm64",
+              "bazel_tags": []
+            }
+          },
+          "prometheus": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "prometheus",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "prom/prometheus",
+              "identifier": "sha256:3b1d5be5c3eef4f027665ddaa3b1a7de8a58d96a0a6de5dd45629afd267ecaf0",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@prometheus_linux_amd64",
+                "@@platforms//cpu:arm64": "@prometheus_linux_arm64"
+              },
+              "bzlmod_repository": "prometheus",
+              "reproducible": true
+            }
+          },
+          "grafana_linux_amd64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "grafana/grafana",
+              "identifier": "sha256:a1701c2180249361737a99a01bc770db39381640e4d631825d38ff4535efa47d",
+              "platform": "linux/amd64",
+              "target_name": "grafana_linux_amd64",
+              "bazel_tags": []
+            }
+          },
+          "grafana_linux_arm64": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_pull",
+            "attributes": {
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "grafana/grafana",
+              "identifier": "sha256:a1701c2180249361737a99a01bc770db39381640e4d631825d38ff4535efa47d",
+              "platform": "linux/arm64",
+              "target_name": "grafana_linux_arm64",
+              "bazel_tags": []
+            }
+          },
+          "grafana": {
+            "repoRuleId": "@@rules_oci+//oci/private:pull.bzl%oci_alias",
+            "attributes": {
+              "target_name": "grafana",
+              "www_authenticate_challenges": {},
+              "scheme": "https",
+              "registry": "index.docker.io",
+              "repository": "grafana/grafana",
+              "identifier": "sha256:a1701c2180249361737a99a01bc770db39381640e4d631825d38ff4535efa47d",
+              "platforms": {
+                "@@platforms//cpu:x86_64": "@grafana_linux_amd64",
+                "@@platforms//cpu:arm64": "@grafana_linux_arm64"
+              },
+              "bzlmod_repository": "grafana",
               "reproducible": true
             }
           },
@@ -417,7 +503,13 @@
           "explicitRootModuleDirectDeps": [
             "distroless_base",
             "distroless_base_linux_amd64",
-            "distroless_base_linux_arm64_v8"
+            "distroless_base_linux_arm64_v8",
+            "prometheus",
+            "prometheus_linux_amd64",
+            "prometheus_linux_arm64",
+            "grafana",
+            "grafana_linux_amd64",
+            "grafana_linux_arm64"
           ],
           "explicitRootModuleDirectDevDeps": [],
           "useAllRepos": "NO",

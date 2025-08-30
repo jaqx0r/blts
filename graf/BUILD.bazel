@@ -1,5 +1,10 @@
 filegroup(
     name = "configs",
-    srcs = glob(["**/*"]),
+    srcs = glob(
+        [
+            "*.ini",
+            "provisioning/**/*",
+        ],
+    ),
     visibility = ["//cmd/demo:__pkg__"],
 )
