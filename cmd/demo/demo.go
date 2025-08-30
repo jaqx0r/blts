@@ -215,7 +215,10 @@ func SetupContainers(ctx context.Context) (*DemoContainers, error) {
 }
 
 func main() {
-	d, err := SetupContainers(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	d, err := SetupContainers(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -223,7 +226,7 @@ func main() {
 	fmt.Println("press enter to start nice load")
 	fmt.Scanln()
 
-	lbep, err := d.loadBalander.PortEndpoint(context.Background(), "9001", "http")
+	lbep, err := d.loadBalander.PortEndpoint(ctx, "9001", "http")
 	if err != nil {
 		log.Fatal(err)
 	}
