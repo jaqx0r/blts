@@ -46,7 +46,12 @@ func stopContainerOnDone(ctx context.Context, wg *sync.WaitGroup, c testcontaine
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		fmt.Println("Stopping container ", c.GetContainerID())
+		name := c.GetContainerID()
+		n, err := c.Inspect(context.Background())
+		if err == nil {
+			name = n.Name
+		}
+		fmt.Println("Stopping container ", name)
 		testcontainers.TerminateContainer(c)
 	}()
 }
