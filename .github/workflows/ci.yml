@@ -20,7 +20,7 @@ jobs:
       # and writes to the checks API
       checks: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: bazel-contrib/setup-bazel@0.15.0
         with:
           # Avoid downloading Bazel each time
