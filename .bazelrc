@@ -1,0 +1,3 @@
+
+# verbose go_test logs for buildbuddy to get more details on test behaviour
+test --test_env=GO_TEST_WRAP_TESTV=1
