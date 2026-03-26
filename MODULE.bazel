@@ -1,7 +1,7 @@
 module(name = "blts")
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
-bazel_dep(name = "gazelle", version = "0.47.0")
+bazel_dep(name = "gazelle", version = "0.48.0")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_go", version = "0.60.0")
 bazel_dep(name = "rules_oci", version = "2.3.0")
