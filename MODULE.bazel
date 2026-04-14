@@ -56,7 +56,7 @@ oci.pull(
 use_repo(oci, "prometheus", "prometheus_linux_amd64", "prometheus_linux_arm64")
 oci.pull(
     name = "grafana",
-    digest = "sha256:83749231c3835e390a3144e5e940203e42b9589761f20ef3169c716e734ad505",
+    digest = "sha256:a03d9e604e4dba58c5e64458a879701f46ef64af1f596058aacfad9aacdcab34",
     image = "docker.io/grafana/grafana",
     platforms = [
         "linux/amd64",
