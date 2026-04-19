@@ -5,14 +5,14 @@ import (
 	"io"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
-	dockerclient "github.com/docker/docker/client"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/layout"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/moby/moby/client"
 	"github.com/testcontainers/testcontainers-go"
 )
 
-func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePath, imageName string) error {
+func loadImage(ctx context.Context, dockerClient *testcontainers.DockerClient, imagePath, imageName string) error {
 	fullPath, err := runfiles.Rlocation(imagePath)
 	if err != nil {
 		return nil
@@ -50,17 +50,17 @@ func loadImage(ctx context.Context, client *testcontainers.DockerClient, imagePa
 			pw.CloseWithError(tarball.Write(ref, img, pw))
 		}()
 
-		resp, err := client.ImageLoad(ctx, pr, dockerclient.ImageLoadWithQuiet(false))
+		resp, err := dockerClient.ImageLoad(ctx, pr, client.ImageLoadWithQuiet(false))
 		if err != nil {
 			return err
 		}
 
-		_, err = io.ReadAll(resp.Body)
+		_, err = io.ReadAll(resp)
 		if err != nil {
 			return err
 		}
 
-		resp.Body.Close()
+		resp.Close()
 	}
 	return nil
 }
