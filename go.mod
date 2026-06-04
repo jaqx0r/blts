@@ -7,7 +7,7 @@ toolchain go1.26.4
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	contrib.go.opencensus.io/exporter/zipkin v0.1.2
-	github.com/bazelbuild/rules_go v0.61.0
+	github.com/bazelbuild/rules_go v0.61.1
 	github.com/google/go-containerregistry v0.21.6
 	github.com/moby/moby/client v0.4.1
 	github.com/openzipkin/zipkin-go v0.4.3
