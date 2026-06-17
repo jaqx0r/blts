@@ -46,7 +46,7 @@ use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "distroless_base
 
 oci.pull(
     name = "prometheus",
-    digest = "sha256:69f5241418838263316593f7274a304b095c40bcf22e57272865da91bd60a8ac",
+    digest = "sha256:a75c5a35bc21d7afe69551eefa3cb1e1fb1775fe759408007a66b54ec3de1f29",
     image = "docker.io/prom/prometheus",
     platforms = [
         "linux/amd64",
