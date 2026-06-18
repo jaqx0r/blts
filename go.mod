@@ -9,7 +9,7 @@ require (
 	contrib.go.opencensus.io/exporter/zipkin v0.1.2
 	github.com/bazelbuild/rules_go v0.61.1
 	github.com/google/go-containerregistry v0.21.7
-	github.com/moby/moby/client v0.4.1
+	github.com/moby/moby/client v0.5.0
 	github.com/openzipkin/zipkin-go v0.4.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/testcontainers/testcontainers-go v0.42.0
@@ -52,7 +52,7 @@ require (
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.2.0 // indirect
-	github.com/moby/moby/api v1.54.2 // indirect
+	github.com/moby/moby/api v1.55.0 // indirect
 	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
 	github.com/moby/sys/user v0.4.0 // indirect
