@@ -2,7 +2,7 @@ module github.com/jaqx0r/blts
 
 go 1.25.7
 
-toolchain go1.26.4
+toolchain go1.26.5
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
