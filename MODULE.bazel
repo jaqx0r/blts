@@ -5,6 +5,13 @@ bazel_dep(name = "gazelle", version = "0.54.0")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_go", version = "0.64.2")
 bazel_dep(name = "rules_oci", version = "2.3.0")
+bazel_dep(name = "toolchains_llvm", version = "1.11.3")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(llvm_version = "23.1.3")
+use_repo(llvm, "llvm_toolchain")
+
+register_toolchains("@llvm_toolchain//:all")
 
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.from_file(go_mod = "//:go.mod")
@@ -43,7 +50,6 @@ oci.pull(
     ],
 )
 use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "distroless_base_linux_arm64_v8")
-
 oci.pull(
     name = "prometheus",
     digest = "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
@@ -54,7 +60,6 @@ oci.pull(
     ],
 )
 use_repo(oci, "prometheus", "prometheus_linux_amd64", "prometheus_linux_arm64")
-
 oci.pull(
     name = "grafana",
     digest = "sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f",
