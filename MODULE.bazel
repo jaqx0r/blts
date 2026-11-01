@@ -2,9 +2,18 @@ module(name = "blts")
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 bazel_dep(name = "gazelle", version = "0.54.0")
+bazel_dep(name = "hermetic_cc_toolchain", version = "4.3.0")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_go", version = "0.65.0")
 bazel_dep(name = "rules_oci", version = "2.3.0")
+
+toolchains = use_extension("@hermetic_cc_toolchain//toolchain:ext.bzl", "toolchains")
+use_repo(toolchains, "zig_sdk")
+
+register_toolchains(
+    "@zig_sdk//toolchain/...",
+    "@zig_sdk//libc_aware/toolchain/...",
+)
 
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.from_file(go_mod = "//:go.mod")
@@ -43,7 +52,6 @@ oci.pull(
     ],
 )
 use_repo(oci, "distroless_base", "distroless_base_linux_amd64", "distroless_base_linux_arm64_v8")
-
 oci.pull(
     name = "prometheus",
     digest = "sha256:fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2",
@@ -54,7 +62,6 @@ oci.pull(
     ],
 )
 use_repo(oci, "prometheus", "prometheus_linux_amd64", "prometheus_linux_arm64")
-
 oci.pull(
     name = "grafana",
     digest = "sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205",
